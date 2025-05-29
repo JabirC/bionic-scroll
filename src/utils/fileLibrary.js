@@ -1,8 +1,8 @@
 // src/utils/fileLibrary.js
 export class FileLibrary {
     constructor() {
-      this.storageKey = 'bioniScroll-library';
-      this.textStorageKey = 'bioniScroll-texts';
+      this.storageKey = 'omniReader-library';
+      this.textStorageKey = 'omniReader-texts';
     }
   
     getLibrary() {
@@ -27,7 +27,12 @@ export class FileLibrary {
           type: fileInfo.type,
           dateAdded: new Date().toISOString(),
           lastRead: null,
-          readingProgress: 0,
+          readingPosition: {
+            characterIndex: 0,
+            percentage: 0,
+            textSnippet: extractedText.substring(0, 100), // First 100 chars for verification
+            sectionHint: 0 // Hint for which section, but not relied upon
+          },
           metadata: fileInfo.metadata || {}
         };
   
@@ -71,6 +76,30 @@ export class FileLibrary {
       }
     }
   
+    updateReadingPosition(fileId, characterIndex, percentage, textSnippet, sectionHint = 0) {
+      try {
+        const library = this.getLibrary();
+        const fileIndex = library.findIndex(file => file.id === fileId);
+        
+        if (fileIndex !== -1) {
+          library[fileIndex].readingPosition = {
+            characterIndex,
+            percentage,
+            textSnippet: textSnippet.substring(0, 100),
+            sectionHint
+          };
+          library[fileIndex].lastRead = new Date().toISOString();
+          localStorage.setItem(this.storageKey, JSON.stringify(library));
+          return true;
+        }
+        
+        return false;
+      } catch (error) {
+        console.error('Error updating reading position:', error);
+        return false;
+      }
+    }
+  
     deleteFile(fileId) {
       try {
         let library = this.getLibrary();
@@ -84,26 +113,6 @@ export class FileLibrary {
         return true;
       } catch (error) {
         console.error('Error deleting file:', error);
-        return false;
-      }
-    }
-  
-    updateReadingProgress(fileId, progress, sectionIndex = 0) {
-      try {
-        const library = this.getLibrary();
-        const fileIndex = library.findIndex(file => file.id === fileId);
-        
-        if (fileIndex !== -1) {
-          library[fileIndex].readingProgress = progress;
-          library[fileIndex].lastRead = new Date().toISOString();
-          library[fileIndex].currentSection = sectionIndex;
-          localStorage.setItem(this.storageKey, JSON.stringify(library));
-          return true;
-        }
-        
-        return false;
-      } catch (error) {
-        console.error('Error updating progress:', error);
         return false;
       }
     }
@@ -124,5 +133,23 @@ export class FileLibrary {
       } catch (error) {
         return { library: 0, texts: 0, total: 0 };
       }
+    }
+  
+    findPositionInText(text, targetCharacterIndex, fallbackSnippet = '') {
+      // Primary method: use character index
+      if (targetCharacterIndex >= 0 && targetCharacterIndex < text.length) {
+        return targetCharacterIndex;
+      }
+  
+      // Fallback: try to find the text snippet
+      if (fallbackSnippet && fallbackSnippet.length > 10) {
+        const index = text.indexOf(fallbackSnippet);
+        if (index !== -1) {
+          return index;
+        }
+      }
+  
+      // Default: return 0
+      return 0;
     }
   }

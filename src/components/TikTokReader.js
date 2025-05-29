@@ -2,11 +2,12 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { Home, Sun, Moon, EyeOff, Eye } from "lucide-react";
 import { TextProcessor } from "../utils/textProcessor";
+import { FileLibrary } from "../utils/fileLibrary";
 import BionicIcon from "./BionicIcon";
 import InlineSectionEditor from "./InlineSectionEditor";
 import ScrollHint from "./ScrollHint";
 
-const TikTokReader = ({ text, fileName, onReset }) => {
+const TikTokReader = ({ text, fileName, onReset, fileId }) => {
   const [sections, setSections] = useState([]);
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
   const [isBionicMode, setIsBionicMode] = useState(false);
@@ -18,49 +19,81 @@ const TikTokReader = ({ text, fileName, onReset }) => {
   
   const containerRef = useRef(null);
   const textProcessor = useRef(new TextProcessor()).current;
+  const fileLibrary = useRef(new FileLibrary()).current;
   const lastScrollTime = useRef(Date.now());
 
   // Handle hydration and theme
   useEffect(() => {
     setIsClient(true);
-    const savedTheme = localStorage.getItem('bioniScroll-theme');
+    const savedTheme = localStorage.getItem('omniReader-theme');
     if (savedTheme) {
       setIsDarkMode(savedTheme === 'dark');
     }
   }, []);
 
-  // Save theme preference
   useEffect(() => {
     if (isClient) {
-      localStorage.setItem('bioniScroll-theme', isDarkMode ? 'dark' : 'light');
+      localStorage.setItem('omniReader-theme', isDarkMode ? 'dark' : 'light');
     }
   }, [isDarkMode, isClient]);
 
-  // Initialize sections with screen-sized chunks
+  // Initialize sections and restore position
   useEffect(() => {
     if (text) {
       const rawSections = textProcessor.splitTextIntoScreenSections(text);
-      setSections(rawSections.map(section => 
+      const processedSections = rawSections.map(section => 
         textProcessor.processSection(section, isBionicMode)
-      ));
+      );
+      setSections(processedSections);
+
+      // Restore reading position if file is saved
+      if (fileId) {
+        const file = fileLibrary.getFile(fileId);
+        if (file && file.readingPosition) {
+          const targetCharIndex = fileLibrary.findPositionInText(
+            text, 
+            file.readingPosition.characterIndex,
+            file.readingPosition.textSnippet
+          );
+          
+          const sectionIndex = textProcessor.findSectionByCharacterIndex(
+            rawSections, 
+            targetCharIndex
+          );
+          
+          setCurrentSectionIndex(sectionIndex);
+        }
+      }
     }
-  }, [text, textProcessor]);
+  }, [text, textProcessor, fileId, fileLibrary]);
 
   // Recalculate sections on window resize
   useEffect(() => {
     const handleResize = () => {
-      if (text) {
+      if (text && sections.length > 0) {
+        // Store current position before resize
+        const currentSection = sections[currentSectionIndex];
+        const currentCharIndex = currentSection ? currentSection.startCharIndex : 0;
+        
+        // Recalculate sections
         const rawSections = textProcessor.splitTextIntoScreenSections(text);
-        setSections(rawSections.map(section => 
+        const processedSections = rawSections.map(section => 
           textProcessor.processSection(section, isBionicMode)
-        ));
-        setCurrentSectionIndex(0);
+        );
+        setSections(processedSections);
+        
+        // Find new section index for the same character position
+        const newSectionIndex = textProcessor.findSectionByCharacterIndex(
+          rawSections, 
+          currentCharIndex
+        );
+        setCurrentSectionIndex(newSectionIndex);
       }
     };
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [text, textProcessor, isBionicMode]);
+  }, [text, textProcessor, isBionicMode, sections, currentSectionIndex]);
 
   // Re-process sections when bionic mode changes
   useEffect(() => {
@@ -71,11 +104,30 @@ const TikTokReader = ({ text, fileName, onReset }) => {
     }
   }, [isBionicMode, textProcessor]);
 
-  // Handle scroll for navigation
+  // Update reading position when section changes
+  useEffect(() => {
+    if (fileId && sections.length > 0 && sections[currentSectionIndex]) {
+      const currentSection = sections[currentSectionIndex];
+      const percentage = ((currentSectionIndex + 1) / sections.length) * 100;
+      
+      // Get text snippet for verification
+      const textStart = Math.max(0, currentSection.startCharIndex);
+      const textSnippet = text.substring(textStart, textStart + 100);
+      
+      fileLibrary.updateReadingPosition(
+        fileId,
+        currentSection.startCharIndex,
+        percentage,
+        textSnippet,
+        currentSectionIndex
+      );
+    }
+  }, [currentSectionIndex, sections, fileId, text, fileLibrary]);
+
   const handleScroll = useCallback((e) => {
     e.preventDefault();
     
-    if (isEditingSection) return; // Don't navigate while editing
+    if (isEditingSection) return;
 
     const now = Date.now();
     const deltaY = e.deltaY;
@@ -130,7 +182,7 @@ const TikTokReader = ({ text, fileName, onReset }) => {
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (isEditingSection) return; // Don't handle navigation when editing section
+      if (isEditingSection) return;
 
       if (e.key === 'ArrowDown' && currentSectionIndex < sections.length - 1) {
         navigateToSection(currentSectionIndex + 1, 'down');
@@ -153,7 +205,6 @@ const TikTokReader = ({ text, fileName, onReset }) => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [currentSectionIndex, sections.length, isBionicMode, showUI, isDarkMode, isEditingSection]);
 
-  // Mouse wheel event
   useEffect(() => {
     const container = document.body;
     container.addEventListener('wheel', handleScroll, { passive: false });
@@ -162,7 +213,6 @@ const TikTokReader = ({ text, fileName, onReset }) => {
 
   const currentSection = sections[currentSectionIndex];
 
-  // Prevent hydration mismatch
   if (!isClient) {
     return (
       <div className="tiktok-reader light">
@@ -186,7 +236,7 @@ const TikTokReader = ({ text, fileName, onReset }) => {
         />
       </div>
 
-      {/* Control Panel with integrated UI toggle */}
+      {/* Control Panel */}
       <div className={`control-panel ${showUI ? 'visible' : 'hidden'}`}>
         <div className="control-group">
           <button
@@ -236,7 +286,6 @@ const TikTokReader = ({ text, fileName, onReset }) => {
         </div>
       </div>
 
-      {/* Standalone UI Toggle for when UI is hidden */}
       <button
         className={`standalone-ui-toggle ${showUI ? 'hidden' : 'visible'}`}
         onClick={() => setShowUI(true)}
@@ -245,7 +294,6 @@ const TikTokReader = ({ text, fileName, onReset }) => {
         <Eye size={18} />
       </button>
 
-      {/* Scroll Hint - Only on first section */}
       <ScrollHint 
         currentSectionIndex={currentSectionIndex}
         totalSections={sections.length}
@@ -277,7 +325,6 @@ const TikTokReader = ({ text, fileName, onReset }) => {
         </div>
       </div>
 
-      {/* Loading State */}
       {sections.length === 0 && (
         <div className="loading-state">
           <div className="loading-spinner" />

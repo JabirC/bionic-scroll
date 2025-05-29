@@ -8,10 +8,9 @@ import {
   Sun, 
   Moon,
   Upload,
-  FileText,
   Loader2,
   Plus,
-  Sparkles
+  RotateCcw
 } from 'lucide-react';
 
 const CleanHomepage = ({ onTextExtracted, isLoading, setIsLoading }) => {
@@ -23,7 +22,7 @@ const CleanHomepage = ({ onTextExtracted, isLoading, setIsLoading }) => {
 
   useEffect(() => {
     setIsClient(true);
-    const savedTheme = localStorage.getItem('bioniScroll-theme');
+    const savedTheme = localStorage.getItem('omniReader-theme');
     if (savedTheme) {
       setIsDarkMode(savedTheme === 'dark');
     }
@@ -32,7 +31,7 @@ const CleanHomepage = ({ onTextExtracted, isLoading, setIsLoading }) => {
 
   useEffect(() => {
     if (isClient) {
-      localStorage.setItem('bioniScroll-theme', isDarkMode ? 'dark' : 'light');
+      localStorage.setItem('omniReader-theme', isDarkMode ? 'dark' : 'light');
     }
   }, [isDarkMode, isClient]);
 
@@ -117,64 +116,54 @@ const CleanHomepage = ({ onTextExtracted, isLoading, setIsLoading }) => {
 
   if (!isClient) {
     return (
-      <div className="clean-homepage loading">
+      <div className="minimal-homepage loading">
         <div className="loading-container">
-          <Loader2 size={32} className="animate-spin" />
+          <Loader2 size={24} className="animate-spin" />
         </div>
       </div>
     );
   }
 
   return (
-    <div className={`clean-homepage ${isDarkMode ? 'dark' : 'light'}`}>
+    <div className={`minimal-homepage ${isDarkMode ? 'dark' : 'light'}`}>
       {/* Header */}
-      <header className="homepage-header">
-        <div className="header-left">
-          <div className="logo">
-            <Sparkles size={32} />
-            <span>BioniScroll</span>
-          </div>
+      <nav className="top-nav">
+        <div className="nav-brand">
+          <span className="brand-text">Omni Reader</span>
         </div>
         
-        <div className="header-right">
+        <div className="nav-actions">
           {library.length > 0 && (
             <button
               onClick={() => setShowLibrary(!showLibrary)}
-              className="header-btn"
-              title={showLibrary ? 'Upload new file' : 'View library'}
+              className="nav-button"
             >
-              {showLibrary ? <Plus size={20} /> : <Library size={20} />}
-              <span className="btn-text">
-                {showLibrary ? 'Add New' : `Library (${library.length})`}
-              </span>
+              {showLibrary ? <Plus size={18} /> : <Library size={18} />}
             </button>
           )}
           
           <button
             onClick={() => setIsDarkMode(!isDarkMode)}
-            className="header-btn theme-btn"
-            title="Toggle theme"
+            className="nav-button"
           >
-            {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
+            {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
           </button>
         </div>
-      </header>
+      </nav>
 
-      {/* Main Content */}
-      <main className="homepage-main">
+      {/* Main */}
+      <main className="main-content">
         {showLibrary && library.length > 0 ? (
-          <LibrarySection 
+          <LibraryGrid 
             library={library}
             onFileOpen={handleLibraryFileOpen}
             onFileDelete={handleFileDelete}
-            isDarkMode={isDarkMode}
           />
         ) : (
-          <UploadSection
+          <UploadZone
             onDrop={handleDrop}
             onFileSelect={handleFileSelect}
             isLoading={isLoading}
-            isDarkMode={isDarkMode}
           />
         )}
       </main>
@@ -182,8 +171,8 @@ const CleanHomepage = ({ onTextExtracted, isLoading, setIsLoading }) => {
   );
 };
 
-// Upload Section Component
-const UploadSection = ({ onDrop, onFileSelect, isLoading, isDarkMode }) => {
+// Upload Zone Component
+const UploadZone = ({ onDrop, onFileSelect, isLoading }) => {
   const [isDragOver, setIsDragOver] = useState(false);
 
   const handleDragOver = (e) => {
@@ -203,14 +192,14 @@ const UploadSection = ({ onDrop, onFileSelect, isLoading, isDarkMode }) => {
   };
 
   return (
-    <div className="upload-section">
-      <div className="upload-intro">
-        <h1>Speed Read Anything</h1>
-        <p>Drop your PDF or EPUB file to start reading with bionic enhancement</p>
+    <div className="upload-zone">
+      <div className="upload-header">
+        <h1>Read Faster</h1>
+        <p>Upload PDF or EPUB files for enhanced reading</p>
       </div>
 
       <div
-        className={`upload-area ${isDragOver ? 'drag-over' : ''} ${isLoading ? 'loading' : ''}`}
+        className={`drop-area ${isDragOver ? 'drag-active' : ''} ${isLoading ? 'processing' : ''}`}
         onDrop={handleDropInternal}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
@@ -225,27 +214,17 @@ const UploadSection = ({ onDrop, onFileSelect, isLoading, isDarkMode }) => {
           disabled={isLoading}
         />
 
-        <div className="upload-content">
+        <div className="drop-content">
           {isLoading ? (
             <>
-              <Loader2 size={48} className="upload-icon spinning" />
-              <h3>Processing your book...</h3>
-              <p>This may take a moment</p>
-            </>
-          ) : isDragOver ? (
-            <>
-              <Upload size={48} className="upload-icon drop-ready" />
-              <h3>Drop to upload</h3>
-              <p>Release your file here</p>
+              <Loader2 size={32} className="icon animate-spin" />
+              <span className="status">Processing...</span>
             </>
           ) : (
             <>
-              <div className="file-icons">
-                <FileText size={40} />
-                <BookOpen size={40} />
-              </div>
-              <h3>Click or drag to upload</h3>
-              <p>PDF and EPUB files supported • Max 50MB</p>
+              <Upload size={32} className="icon" />
+              <span className="status">{isDragOver ? 'Drop file' : 'Drop or click'}</span>
+              <span className="format">PDF, EPUB up to 50MB</span>
             </>
           )}
         </div>
@@ -254,74 +233,66 @@ const UploadSection = ({ onDrop, onFileSelect, isLoading, isDarkMode }) => {
   );
 };
 
-// Library Section Component
-const LibrarySection = ({ library, onFileOpen, onFileDelete, isDarkMode }) => {
-  const formatDate = (dateString) => {
+// Library Grid Component
+const LibraryGrid = ({ library, onFileOpen, onFileDelete }) => {
+  const formatRelativeTime = (dateString) => {
     const date = new Date(dateString);
     const now = new Date();
-    const diffTime = Math.abs(now - date);
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    const diffHours = Math.abs(now - date) / 36e5;
     
-    if (diffDays === 1) return 'Today';
-    if (diffDays === 2) return 'Yesterday';
-    if (diffDays <= 7) return `${diffDays}d ago`;
+    if (diffHours < 1) return 'Just now';
+    if (diffHours < 24) return `${Math.floor(diffHours)}h ago`;
+    if (diffHours < 168) return `${Math.floor(diffHours / 24)}d ago`;
     return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
   };
 
-  const getFileIcon = (type) => {
-    return type === 'application/epub+zip' ? '📚' : '📄';
-  };
-
   return (
-    <div className="library-section">
-      <div className="library-header">
-        <h2>Your Library</h2>
-        <p>{library.length} book{library.length !== 1 ? 's' : ''}</p>
+    <div className="library-grid">
+      <div className="grid-header">
+        <h2>Library</h2>
+        <span className="count">{library.length}</span>
       </div>
 
-      <div className="books-grid">
+      <div className="books">
         {library.map((file) => (
-          <div key={file.id} className="book-item">
+          <div key={file.id} className="book-row">
             <div 
               className="book-main"
               onClick={() => onFileOpen(file.id)}
             >
-              <div className="book-icon">
-                {getFileIcon(file.type)}
+              <div className="book-indicator">
+                <div className="indicator-dot" />
+                {file.readingPosition && file.readingPosition.percentage > 0 && (
+                  <div 
+                    className="progress-arc"
+                    style={{ 
+                      background: `conic-gradient(#059669 0deg ${file.readingPosition.percentage * 3.6}deg, transparent ${file.readingPosition.percentage * 3.6}deg 360deg)` 
+                    }}
+                  />
+                )}
               </div>
               
-              <div className="book-details">
-                <h3 className="book-title">
+              <div className="book-info">
+                <div className="book-title">
                   {file.name.replace(/\.(pdf|epub)$/i, '')}
-                </h3>
-                <div className="book-meta">
-                  <span>{formatDate(file.lastRead || file.dateAdded)}</span>
-                  {file.readingProgress > 0 && (
-                    <span className="progress">{Math.round(file.readingProgress)}% read</span>
+                </div>
+                <div className="book-time">
+                  {formatRelativeTime(file.lastRead || file.dateAdded)}
+                  {file.readingPosition && file.readingPosition.percentage > 0 && (
+                    <span className="progress-text">
+                      • {Math.round(file.readingPosition.percentage)}% read
+                    </span>
                   )}
                 </div>
               </div>
             </div>
             
             <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onFileDelete(file.id);
-              }}
-              className="delete-btn"
-              title="Remove from library"
+              onClick={() => onFileDelete(file.id)}
+              className="delete-button"
             >
-              ×
+              <RotateCcw size={14} />
             </button>
-
-            {file.readingProgress > 0 && (
-              <div className="progress-bar">
-                <div 
-                  className="progress-fill"
-                  style={{ width: `${file.readingProgress}%` }}
-                />
-              </div>
-            )}
           </div>
         ))}
       </div>
