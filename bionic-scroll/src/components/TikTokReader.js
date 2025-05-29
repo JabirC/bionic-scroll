@@ -1,9 +1,10 @@
 // src/components/TikTokReader.js
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Home, Sun, Moon, ChevronsDown, EyeOff, Eye } from "lucide-react";
+import { Home, Sun, Moon, EyeOff, Eye } from "lucide-react";
 import { TextProcessor } from "../utils/textProcessor";
 import BionicIcon from "./BionicIcon";
 import InlineSectionEditor from "./InlineSectionEditor";
+import ScrollHint from "./ScrollHint";
 
 const TikTokReader = ({ text, fileName, onReset }) => {
   const [sections, setSections] = useState([]);
@@ -12,14 +13,12 @@ const TikTokReader = ({ text, fileName, onReset }) => {
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [showUI, setShowUI] = useState(true);
   const [isDarkMode, setIsDarkMode] = useState(false);
-  const [showScrollIndicators, setShowScrollIndicators] = useState(false);
   const [isEditingSection, setIsEditingSection] = useState(false);
   const [isClient, setIsClient] = useState(false);
   
   const containerRef = useRef(null);
   const textProcessor = useRef(new TextProcessor()).current;
   const lastScrollTime = useRef(Date.now());
-  const scrollIndicatorTimeout = useRef(null);
 
   // Handle hydration and theme
   useEffect(() => {
@@ -72,17 +71,6 @@ const TikTokReader = ({ text, fileName, onReset }) => {
     }
   }, [isBionicMode, textProcessor]);
 
-  // Show scroll indicators temporarily
-  const showScrollIndicatorsTemporarily = useCallback(() => {
-    setShowScrollIndicators(true);
-    if (scrollIndicatorTimeout.current) {
-      clearTimeout(scrollIndicatorTimeout.current);
-    }
-    scrollIndicatorTimeout.current = setTimeout(() => {
-      setShowScrollIndicators(false);
-    }, 2000);
-  }, []);
-
   // Handle scroll for navigation
   const handleScroll = useCallback((e) => {
     e.preventDefault();
@@ -97,8 +85,6 @@ const TikTokReader = ({ text, fileName, onReset }) => {
 
     if (isTransitioning) return;
 
-    showScrollIndicatorsTemporarily();
-
     const scrollThreshold = 50;
     if (Math.abs(deltaY) < scrollThreshold) return;
 
@@ -107,7 +93,7 @@ const TikTokReader = ({ text, fileName, onReset }) => {
     } else if (deltaY < 0 && currentSectionIndex > 0) {
       navigateToSection(currentSectionIndex - 1, 'up');
     }
-  }, [currentSectionIndex, sections.length, isTransitioning, showScrollIndicatorsTemporarily, isEditingSection]);
+  }, [currentSectionIndex, sections.length, isTransitioning, isEditingSection]);
 
   const navigateToSection = (newIndex, direction) => {
     setIsTransitioning(true);
@@ -175,7 +161,6 @@ const TikTokReader = ({ text, fileName, onReset }) => {
   }, [handleScroll]);
 
   const currentSection = sections[currentSectionIndex];
-  const canGoDown = currentSectionIndex < sections.length - 1;
 
   // Prevent hydration mismatch
   if (!isClient) {
@@ -260,15 +245,12 @@ const TikTokReader = ({ text, fileName, onReset }) => {
         <Eye size={18} />
       </button>
 
-      {/* Navigation Indicators - Only down indicator */}
-      {(showScrollIndicators || !showUI) && canGoDown && (
-        <div className="nav-indicators">
-          <div className="nav-indicator nav-down">
-            <ChevronsDown size={16} />
-            <span>Scroll down</span>
-          </div>
-        </div>
-      )}
+      {/* Scroll Hint - Only on first section */}
+      <ScrollHint 
+        currentSectionIndex={currentSectionIndex}
+        totalSections={sections.length}
+        isDarkMode={isDarkMode}
+      />
 
       {/* Main Content */}
       <div className="content-wrapper">

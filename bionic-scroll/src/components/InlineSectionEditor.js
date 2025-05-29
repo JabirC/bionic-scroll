@@ -54,29 +54,37 @@ const InlineSectionEditor = ({
     }, 100);
   };
 
-  // Calculate appropriate width based on total sections
-  const getInputWidth = () => {
-    const totalDigits = totalSections.toString().length;
-    return Math.max(2, totalDigits) * 0.6 + 1; // rem units
+  // Calculate width for current section input based on number of digits
+  const getCurrentSectionWidth = () => {
+    const digits = currentSection.toString().length;
+    return `${Math.max(1.5, digits * 0.7)}rem`;
+  };
+
+  // Calculate displayed width for the current section number
+  const getCurrentSectionDisplayWidth = () => {
+    const digits = currentSection.toString().length;
+    return `${Math.max(1.5, digits * 0.7)}rem`;
   };
 
   if (isEditing) {
     return (
-      <form onSubmit={handleSubmit} className="section-editor-form">
-        <input
-          ref={inputRef}
-          type="text"
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
-          onKeyDown={handleKeyDown}
-          onBlur={handleBlur}
-          className="section-editor-input"
-          style={{ width: `${getInputWidth()}rem` }}
-          placeholder={`1-${totalSections}`}
-        />
+      <div className="section-editor-container">
+        <form onSubmit={handleSubmit} className="section-editor-form">
+          <input
+            ref={inputRef}
+            type="text"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            onKeyDown={handleKeyDown}
+            onBlur={handleBlur}
+            className="section-editor-input"
+            style={{ width: getCurrentSectionWidth() }}
+            placeholder={currentSection.toString()}
+          />
+        </form>
         <span className="section-separator">/ </span>
         <span className="section-total">{totalSections}</span>
-      </form>
+      </div>
     );
   }
 
@@ -86,7 +94,12 @@ const InlineSectionEditor = ({
       onClick={onStartEdit}
       title="Edit section number"
     >
-      <span className="section-current">{currentSection}</span>
+      <span 
+        className="section-current"
+        style={{ minWidth: getCurrentSectionDisplayWidth() }}
+      >
+        {currentSection}
+      </span>
       <span className="section-separator">/ </span>
       <span className="section-total">{totalSections}</span>
     </button>

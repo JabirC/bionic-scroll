@@ -130,8 +130,10 @@ const ModernFileUpload = ({ onTextExtracted, isLoading, setIsLoading }) => {
           {isLoading ? (
             <div className="loading-content">
               <Loader2 className="loading-icon" />
-              <h3>Processing your PDF...</h3>
-              <p>Extracting text and preparing for speed reading</p>
+              <div className="loading-text">
+                <h3>Processing your PDF...</h3>
+                <p>Extracting text and preparing for speed reading</p>
+              </div>
             </div>
           ) : (
             <div className="upload-content">
