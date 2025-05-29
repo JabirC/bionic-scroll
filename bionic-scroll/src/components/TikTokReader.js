@@ -1,6 +1,6 @@
 // src/components/TikTokReader.js
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { RotateCcw, Eye, EyeOff, ArrowUp, ArrowDown, Settings, X, Moon, Sun } from "lucide-react";
+import { RotateCcw, Eye, EyeOff, ChevronsUp, ChevronsDown, Settings2, Moon, Sun } from "lucide-react";
 import { TextProcessor } from "../utils/textProcessor";
 
 const TikTokReader = ({ text, fileName, onReset }) => {
@@ -28,11 +28,11 @@ const TikTokReader = ({ text, fileName, onReset }) => {
   // Re-process sections when bionic mode changes
   useEffect(() => {
     if (sections.length > 0) {
-      setSections(sections.map(section => 
+      setSections(prevSections => prevSections.map(section => 
         textProcessor.processSection(section, isBionicMode)
       ));
     }
-  }, [isBionicMode, sections.length, textProcessor]);
+  }, [isBionicMode, textProcessor]);
 
   // Handle scroll for navigation
   const handleScroll = useCallback((e) => {
@@ -41,13 +41,11 @@ const TikTokReader = ({ text, fileName, onReset }) => {
     const now = Date.now();
     const deltaY = e.deltaY;
     
-    // Throttle scroll events more aggressively
     if (now - lastScrollTime.current < 100) return;
     lastScrollTime.current = now;
 
     if (isTransitioning) return;
 
-    // More sensitive scroll detection
     const scrollThreshold = 50;
     if (Math.abs(deltaY) < scrollThreshold) return;
 
@@ -63,7 +61,6 @@ const TikTokReader = ({ text, fileName, onReset }) => {
     
     const container = containerRef.current;
     if (container) {
-      // Faster, smoother animation
       container.style.transform = `translateY(${direction === 'down' ? '-100vh' : '100vh'})`;
       
       setTimeout(() => {
@@ -93,9 +90,10 @@ const TikTokReader = ({ text, fileName, onReset }) => {
       } else if (e.key === ' ') {
         e.preventDefault();
         setIsBionicMode(!isBionicMode);
-      } else if (e.key === 'h') {
+      } else if (e.key === 'h' || e.key === 'H') {
+        e.preventDefault();
         setShowUI(!showUI);
-      } else if (e.key === 'd') {
+      } else if (e.key === 'd' || e.key === 'D') {
         setIsDarkMode(!isDarkMode);
       }
     };
@@ -115,15 +113,6 @@ const TikTokReader = ({ text, fileName, onReset }) => {
 
   return (
     <div className={`tiktok-reader ${isDarkMode ? 'dark' : 'light'}`}>
-      {/* Settings Toggle */}
-      <button
-        className={`settings-toggle ${showUI ? 'visible' : 'hidden'}`}
-        onClick={() => setShowUI(!showUI)}
-        title="Toggle UI (H)"
-      >
-        {showUI ? <X size={20} /> : <Settings size={20} />}
-      </button>
-
       {/* Progress Bar */}
       <div className={`progress-bar ${showUI ? 'visible' : 'hidden'}`}>
         <div 
@@ -134,6 +123,15 @@ const TikTokReader = ({ text, fileName, onReset }) => {
         />
       </div>
 
+      {/* Settings Toggle - Always visible */}
+      <button
+        className="settings-toggle"
+        onClick={() => setShowUI(!showUI)}
+        title="Toggle UI (H)"
+      >
+        <Settings2 size={20} />
+      </button>
+
       {/* Control Panel */}
       <div className={`control-panel ${showUI ? 'visible' : 'hidden'}`}>
         <div className="control-group">
@@ -143,6 +141,7 @@ const TikTokReader = ({ text, fileName, onReset }) => {
             title="Toggle Bionic Reading (Space)"
           >
             {isBionicMode ? <Eye size={18} /> : <EyeOff size={18} />}
+            <span className="control-label">Bionic</span>
           </button>
           
           <button
@@ -151,6 +150,7 @@ const TikTokReader = ({ text, fileName, onReset }) => {
             title="Toggle Dark Mode (D)"
           >
             {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
+            <span className="control-label">Theme</span>
           </button>
           
           <button
@@ -159,11 +159,14 @@ const TikTokReader = ({ text, fileName, onReset }) => {
             title="Upload New Document"
           >
             <RotateCcw size={18} />
+            <span className="control-label">New PDF</span>
           </button>
         </div>
 
-        <div className="section-counter">
-          {currentSectionIndex + 1} / {sections.length}
+        <div className="section-info">
+          <span className="section-counter">
+            {currentSectionIndex + 1} / {sections.length}
+          </span>
         </div>
       </div>
 
@@ -171,35 +174,41 @@ const TikTokReader = ({ text, fileName, onReset }) => {
       <div className={`nav-indicators ${showUI ? 'visible' : 'hidden'}`}>
         {currentSectionIndex > 0 && (
           <div className="nav-indicator nav-up">
-            <ArrowUp size={20} />
+            <ChevronsUp size={16} />
+            <span>Scroll up</span>
           </div>
         )}
         {currentSectionIndex < sections.length - 1 && (
           <div className="nav-indicator nav-down">
-            <ArrowDown size={20} />
+            <ChevronsDown size={16} />
+            <span>Scroll down</span>
           </div>
         )}
       </div>
 
       {/* Main Content */}
-      <div 
-        ref={containerRef}
-        className="section-container"
-      >
-        {currentSection && (
-          <div className="section-content">
-            {currentSection.isBionic ? (
-              <div
-                className="text-content bionic-text"
-                dangerouslySetInnerHTML={{ __html: currentSection.processed }}
-              />
-            ) : (
-              <div className="text-content regular-text">
-                {formatTextWithParagraphs(currentSection.processed)}
+      <div className="content-wrapper">
+        <div 
+          ref={containerRef}
+          className="section-container"
+        >
+          {currentSection && (
+            <div className="section-content">
+              <div className="text-wrapper">
+                {currentSection.isBionic ? (
+                  <div
+                    className="text-content bionic-text"
+                    dangerouslySetInnerHTML={{ __html: currentSection.processed }}
+                  />
+                ) : (
+                  <div className="text-content regular-text">
+                    <div dangerouslySetInnerHTML={{ __html: currentSection.regularFormatted }} />
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        )}
+            </div>
+          )}
+        </div>
       </div>
 
       {/* Loading State */}
@@ -211,14 +220,6 @@ const TikTokReader = ({ text, fileName, onReset }) => {
       )}
     </div>
   );
-};
-
-const formatTextWithParagraphs = (text) => {
-  return text.split(/\n\s*\n/).map((paragraph, index) => (
-    <p key={index} className="paragraph">
-      {paragraph.trim()}
-    </p>
-  ));
 };
 
 export default TikTokReader;

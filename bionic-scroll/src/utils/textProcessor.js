@@ -1,7 +1,7 @@
 // src/utils/textProcessor.js
 export class TextProcessor {
     constructor() {
-      this.wordsPerScreen = 150; // Approximate words that fit comfortably on screen
+      this.wordsPerScreen = 120; // Reduced for better readability
     }
   
     // Split text into screen-sized sections
@@ -46,8 +46,10 @@ export class TextProcessor {
         let boldLength;
         if (word.length <= 3) {
           boldLength = 1;
+        } else if (word.length <= 5) {
+          boldLength = 2;
         } else {
-          boldLength = Math.ceil(word.length * 0.5);
+          boldLength = Math.max(3, Math.ceil(word.length * 0.4));
         }
   
         const boldPart = word.slice(0, boldLength);
@@ -56,14 +58,25 @@ export class TextProcessor {
       });
     }
   
+    // Format text consistently whether bionic is on or off
+    formatText(text) {
+      return text
+        .split(/\n\s*\n/)
+        .filter(p => p.trim())
+        .map(p => `<p>${p.trim()}</p>`)
+        .join('');
+    }
+  
     processSection(section, isBionic = false) {
+      const regularFormatted = this.formatText(section.content);
       const processed = isBionic 
-        ? this.formatBionicTextOptimized(section.content)
-        : section.content;
+        ? this.formatText(this.formatBionicTextOptimized(section.content))
+        : regularFormatted;
   
       return {
         ...section,
         processed,
+        regularFormatted,
         isBionic
       };
     }

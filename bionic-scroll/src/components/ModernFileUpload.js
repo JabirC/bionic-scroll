@@ -49,6 +49,7 @@ const ModernFileUpload = ({ onTextExtracted, isLoading, setIsLoading }) => {
       <button
         className="theme-toggle"
         onClick={() => setIsDarkMode(!isDarkMode)}
+        aria-label="Toggle theme"
       >
         {isDarkMode ? <Sun size={20} /> : <Moon size={20} />}
       </button>
@@ -60,7 +61,7 @@ const ModernFileUpload = ({ onTextExtracted, isLoading, setIsLoading }) => {
             <Sparkles className="logo-icon" />
             <h1>BioniScroll</h1>
           </div>
-          <p className="tagline">Transform any PDF into a speed-reading experience</p>
+          <p className="tagline">Transform PDFs into speed-reading experiences</p>
         </div>
 
         {/* Features */}
@@ -75,7 +76,7 @@ const ModernFileUpload = ({ onTextExtracted, isLoading, setIsLoading }) => {
           </div>
           <div className="feature">
             <FileText className="feature-icon" />
-            <span>PDF Processing</span>
+            <span>PDF Support</span>
           </div>
         </div>
 
@@ -96,7 +97,6 @@ const ModernFileUpload = ({ onTextExtracted, isLoading, setIsLoading }) => {
             <div className="upload-content">
               <div className="upload-icon-container">
                 <Upload className="upload-icon" />
-                <div className="upload-glow" />
               </div>
               
               {isDragActive ? (
@@ -119,7 +119,7 @@ const ModernFileUpload = ({ onTextExtracted, isLoading, setIsLoading }) => {
 
         {/* Footer */}
         <div className="upload-footer">
-          <p>Your documents are processed locally and never stored</p>
+          <p>Your files are processed locally and never stored</p>
         </div>
       </div>
     </div>
