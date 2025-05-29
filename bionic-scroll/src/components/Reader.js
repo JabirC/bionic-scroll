@@ -2,27 +2,28 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { ChevronLeft, Eye, EyeOff, RotateCcw, BookOpen } from "lucide-react";
 import VerticalProgressBar from "./VerticalProgressBar";
-import { formatBionicText, preserveTextFormatting } from "../utils/textFormatter";
+import StreamingText from "./StreamingText";
 
 const Reader = ({ text, fileName, onReset }) => {
   const [isBionicMode, setIsBionicMode] = useState(false);
   const [scrollProgress, setScrollProgress] = useState(0);
   const [wordsRead, setWordsRead] = useState(0);
-  const contentRef = useRef(null);
+  const [totalChunks, setTotalChunks] = useState(0);
   const containerRef = useRef(null);
 
-  // Process text to preserve formatting
-  const formattedText = preserveTextFormatting(text);
-  const totalWords = formattedText.split(/\s+/).filter((word) => word.length > 0).length;
-  const estimatedReadingTime = Math.ceil(totalWords / 200); // 200 words per minute
+  const totalWords = text.split(/\s+/).filter((word) => word.length > 0).length;
+  const estimatedReadingTime = Math.ceil(totalWords / 200);
 
   const handleScroll = useCallback(() => {
     if (containerRef.current) {
       const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
-      const progress = (scrollTop / (scrollHeight - clientHeight)) * 100;
+      const progress = scrollHeight <= clientHeight 
+        ? 100 
+        : (scrollTop / (scrollHeight - clientHeight)) * 100;
+      
       setScrollProgress(Math.min(progress, 100));
 
-      // Estimate words read based on scroll position
+      // Estimate words read
       const wordsReadEstimate = Math.floor((progress / 100) * totalWords);
       setWordsRead(wordsReadEstimate);
     }
@@ -31,37 +32,14 @@ const Reader = ({ text, fileName, onReset }) => {
   useEffect(() => {
     const container = containerRef.current;
     if (container) {
-      container.addEventListener("scroll", handleScroll);
+      container.addEventListener("scroll", handleScroll, { passive: true });
       return () => container.removeEventListener("scroll", handleScroll);
     }
   }, [handleScroll]);
 
-  const renderText = () => {
-    if (isBionicMode) {
-      return (
-        <div 
-          className="bionic-text"
-          dangerouslySetInnerHTML={{ __html: formatBionicText(formattedText) }} 
-        />
-      );
-    }
-    return (
-      <div className="reading-content">
-        {formatTextWithParagraphs(formattedText)}
-      </div>
-    );
-  };
-
-  // Helper function to format text with proper paragraphs
-  const formatTextWithParagraphs = (text) => {
-    return text
-      .split(/\n\s*\n/) // Split on double line breaks (paragraph breaks)
-      .map((paragraph, index) => (
-        <p key={index} className="mb-6 leading-relaxed">
-          {paragraph.trim()}
-        </p>
-      ));
-  };
+  const handleProcessingComplete = useCallback((chunksCount) => {
+    setTotalChunks(chunksCount);
+  }, []);
 
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col font-roboto">
@@ -69,8 +47,8 @@ const Reader = ({ text, fileName, onReset }) => {
       <VerticalProgressBar progress={scrollProgress} />
 
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
-        <div className="max-w-4xl mx-auto px-4 py-3">
+      <header className="bg-white border-b border-gray-200 sticky top-0 z-20 backdrop-blur-sm bg-white/95">
+        <div className="max-w-5xl mx-auto px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
               <button
@@ -85,7 +63,8 @@ const Reader = ({ text, fileName, onReset }) => {
                   {fileName.replace(".pdf", "")}
                 </h2>
                 <p className="text-sm text-gray-500">
-                  {totalWords.toLocaleString()} words • ~{estimatedReadingTime} min read • {Math.round(scrollProgress)}% complete
+                  {totalWords.toLocaleString()} words • ~{estimatedReadingTime} min • {Math.round(scrollProgress)}% complete
+                  {totalChunks > 0 && ` • ${totalChunks} sections`}
                 </p>
               </div>
             </div>
@@ -119,11 +98,10 @@ const Reader = ({ text, fileName, onReset }) => {
         </div>
       </header>
 
-      {/* Content */}
+      {/* Content with Streaming */}
       <div ref={containerRef} className="flex-1 overflow-y-auto">
-        <div className="max-w-3xl mx-auto px-6 py-16">
+        <div className="max-w-4xl mx-auto px-6 py-16">
           <div
-            ref={contentRef}
             className={`
               prose prose-lg max-w-none text-gray-800
               ${isBionicMode ? "bionic-text" : "reading-content"}
@@ -134,7 +112,11 @@ const Reader = ({ text, fileName, onReset }) => {
               fontFamily: 'Roboto, sans-serif'
             }}
           >
-            {renderText()}
+            <StreamingText
+              text={text}
+              isBionicMode={isBionicMode}
+              onProcessingComplete={handleProcessingComplete}
+            />
           </div>
 
           {/* End of document indicator */}
