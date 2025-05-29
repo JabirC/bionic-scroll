@@ -4,42 +4,41 @@ import { ChevronDown } from 'lucide-react';
 
 const ScrollHint = ({ currentSectionIndex, totalSections, isDarkMode }) => {
   const [isVisible, setIsVisible] = useState(false);
-  const [hasBeenShown, setHasBeenShown] = useState(false);
+  const [showCount, setShowCount] = useState(0);
 
   useEffect(() => {
-    // Check if hint has been shown before
-    const hintShown = localStorage.getItem('bioniScroll-hint-shown');
-    
-    if (!hintShown && currentSectionIndex === 0 && totalSections > 1) {
-      // Show hint after a short delay on first section
-      const timer = setTimeout(() => {
-        setIsVisible(true);
-        setHasBeenShown(true);
-      }, 2000);
+    // Show hint whenever user is on first section, but limit frequency
+    if (currentSectionIndex === 0 && totalSections > 1) {
+      // Check if we've shown the hint too many times recently
+      const lastShown = localStorage.getItem('bioniScroll-hint-last-shown');
+      const now = Date.now();
+      
+      if (!lastShown || now - parseInt(lastShown) > 300000) { // 5 minutes
+        // Show after a delay
+        const timer = setTimeout(() => {
+          setIsVisible(true);
+          setShowCount(prev => prev + 1);
+          localStorage.setItem('bioniScroll-hint-last-shown', now.toString());
+        }, 1500);
 
-      return () => clearTimeout(timer);
+        return () => clearTimeout(timer);
+      }
+    } else {
+      // Hide hint when not on first section
+      setIsVisible(false);
     }
   }, [currentSectionIndex, totalSections]);
 
   useEffect(() => {
-    if (hasBeenShown) {
-      // Hide hint after 5 seconds
+    if (isVisible) {
+      // Auto hide after 4 seconds
       const timer = setTimeout(() => {
         setIsVisible(false);
-        localStorage.setItem('bioniScroll-hint-shown', 'true');
-      }, 5000);
+      }, 4000);
 
       return () => clearTimeout(timer);
     }
-  }, [hasBeenShown]);
-
-  useEffect(() => {
-    // Hide hint if user navigates away from first section
-    if (currentSectionIndex > 0 && isVisible) {
-      setIsVisible(false);
-      localStorage.setItem('bioniScroll-hint-shown', 'true');
-    }
-  }, [currentSectionIndex, isVisible]);
+  }, [isVisible, showCount]);
 
   if (!isVisible || currentSectionIndex > 0 || totalSections <= 1) {
     return null;

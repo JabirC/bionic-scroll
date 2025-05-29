@@ -1,4 +1,4 @@
-// src/app/api/extract-pdf/route.js
+// src/app/api/extract-text/route.js
 import { NextResponse } from 'next/server';
 
 const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
@@ -6,7 +6,6 @@ const TIMEOUT_DURATION = 30000; // 30 seconds
 
 export async function POST(request) {
   try {
-    // Get the uploaded file
     const formData = await request.formData();
     const file = formData.get('file');
     
@@ -18,9 +17,10 @@ export async function POST(request) {
     }
 
     // Validate file type
-    if (file.type !== 'application/pdf') {
+    const validTypes = ['application/pdf', 'application/epub+zip'];
+    if (!validTypes.includes(file.type)) {
       return NextResponse.json(
-        { error: 'Invalid file type. Only PDF files are allowed.' },
+        { error: 'Invalid file type. Only PDF and EPUB files are allowed.' },
         { status: 400 }
       );
     }
@@ -35,60 +35,61 @@ export async function POST(request) {
 
     if (file.size < 100) {
       return NextResponse.json(
-        { error: 'File too small. Please provide a valid PDF.' },
+        { error: 'File too small. Please provide a valid file.' },
         { status: 400 }
       );
     }
 
-    // Convert file to buffer
-    const bytes = await file.arrayBuffer();
-    const buffer = Buffer.from(bytes);
+    // Extract text based on file type
+    let result;
+    
+    if (file.type === 'application/epub+zip') {
+      // Dynamic import for EPUB extractor
+      const { EPUBExtractor } = await import('../../../utils/epubExtractor');
+      const epubExtractor = new EPUBExtractor();
+      const extractionPromise = epubExtractor.extractText(file);
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('EPUB processing timeout')), TIMEOUT_DURATION);
+      });
+      
+      result = await Promise.race([extractionPromise, timeoutPromise]);
+    } else {
+      // PDF extraction (existing code)
+      const bytes = await file.arrayBuffer();
+      const buffer = Buffer.from(bytes);
+      const extractionPromise = extractTextFromPDF(buffer);
+      const timeoutPromise = new Promise((_, reject) => {
+        setTimeout(() => reject(new Error('PDF processing timeout')), TIMEOUT_DURATION);
+      });
 
-    // Extract text with timeout
-    const extractionPromise = extractTextFromPDF(buffer);
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('PDF processing timeout')), TIMEOUT_DURATION);
-    });
-
-    const result = await Promise.race([extractionPromise, timeoutPromise]);
+      result = await Promise.race([extractionPromise, timeoutPromise]);
+    }
 
     return NextResponse.json({
       text: result.text,
       metadata: result.metadata,
+      fileType: file.type === 'application/epub+zip' ? 'epub' : 'pdf',
       success: true
     });
 
   } catch (error) {
-    console.error('PDF extraction error:', error);
+    console.error('Text extraction error:', error);
     
     if (error.message.includes('timeout')) {
       return NextResponse.json(
-        { error: 'PDF processing timed out. The file may be too complex or corrupted.' },
+        { error: 'File processing timed out. The file may be too complex or corrupted.' },
         { status: 408 }
       );
     }
     
-    if (error.message.includes('Invalid PDF') || error.message.includes('corrupted')) {
-      return NextResponse.json(
-        { error: 'Invalid or corrupted PDF file.' },
-        { status: 400 }
-      );
-    }
-
-    if (error.message.includes('encrypted') || error.message.includes('password')) {
-      return NextResponse.json(
-        { error: 'Password-protected PDFs are not supported.' },
-        { status: 400 }
-      );
-    }
-
     return NextResponse.json(
-      { error: 'Failed to process PDF. Please try a different file.' },
+      { error: 'Failed to process file. Please try a different file.' },
       { status: 500 }
     );
   }
 }
 
+// Keep all existing PDF extraction functions here...
 async function extractTextFromPDF(buffer) {
   let extractedText = '';
   let method = 'unknown';
