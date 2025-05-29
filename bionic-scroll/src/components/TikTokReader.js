@@ -1,6 +1,6 @@
 // src/components/TikTokReader.js
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { RotateCcw, Eye, EyeOff, ArrowUp, ArrowDown } from "lucide-react";
+import { RotateCcw, Eye, EyeOff, ArrowUp, ArrowDown, Settings, X, Moon, Sun } from "lucide-react";
 import { TextProcessor } from "../utils/textProcessor";
 
 const TikTokReader = ({ text, fileName, onReset }) => {
@@ -8,18 +8,17 @@ const TikTokReader = ({ text, fileName, onReset }) => {
   const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
   const [isBionicMode, setIsBionicMode] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [showControls, setShowControls] = useState(true);
+  const [showUI, setShowUI] = useState(true);
+  const [isDarkMode, setIsDarkMode] = useState(false);
   
   const containerRef = useRef(null);
   const textProcessor = useRef(new TextProcessor()).current;
-  const scrollPosition = useRef(0);
   const lastScrollTime = useRef(Date.now());
-  const controlsTimeout = useRef(null);
 
-  // Initialize sections
+  // Initialize sections with screen-sized chunks
   useEffect(() => {
     if (text) {
-      const rawSections = textProcessor.splitTextIntoSections(text);
+      const rawSections = textProcessor.splitTextIntoScreenSections(text);
       setSections(rawSections.map(section => 
         textProcessor.processSection(section, isBionicMode)
       ));
@@ -42,26 +41,19 @@ const TikTokReader = ({ text, fileName, onReset }) => {
     const now = Date.now();
     const deltaY = e.deltaY;
     
-    // Throttle scroll events
-    if (now - lastScrollTime.current < 150) return;
+    // Throttle scroll events more aggressively
+    if (now - lastScrollTime.current < 100) return;
     lastScrollTime.current = now;
-    
-    // Show controls on scroll
-    setShowControls(true);
-    clearTimeout(controlsTimeout.current);
-    controlsTimeout.current = setTimeout(() => setShowControls(false), 3000);
 
     if (isTransitioning) return;
 
-    // Determine scroll direction and magnitude
-    const scrollThreshold = 100;
+    // More sensitive scroll detection
+    const scrollThreshold = 50;
     if (Math.abs(deltaY) < scrollThreshold) return;
 
     if (deltaY > 0 && currentSectionIndex < sections.length - 1) {
-      // Scroll down - next section
       navigateToSection(currentSectionIndex + 1, 'down');
     } else if (deltaY < 0 && currentSectionIndex > 0) {
-      // Scroll up - previous section
       navigateToSection(currentSectionIndex - 1, 'up');
     }
   }, [currentSectionIndex, sections.length, isTransitioning]);
@@ -71,6 +63,7 @@ const TikTokReader = ({ text, fileName, onReset }) => {
     
     const container = containerRef.current;
     if (container) {
+      // Faster, smoother animation
       container.style.transform = `translateY(${direction === 'down' ? '-100vh' : '100vh'})`;
       
       setTimeout(() => {
@@ -78,15 +71,15 @@ const TikTokReader = ({ text, fileName, onReset }) => {
         container.style.transition = 'none';
         container.style.transform = `translateY(${direction === 'down' ? '100vh' : '-100vh'})`;
         
-        setTimeout(() => {
-          container.style.transition = 'transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)';
+        requestAnimationFrame(() => {
+          container.style.transition = 'transform 0.4s cubic-bezier(0.23, 1, 0.32, 1)';
           container.style.transform = 'translateY(0)';
           
           setTimeout(() => {
             setIsTransitioning(false);
-          }, 600);
-        }, 50);
-      }, 300);
+          }, 400);
+        });
+      }, 200);
     }
   };
 
@@ -100,108 +93,108 @@ const TikTokReader = ({ text, fileName, onReset }) => {
       } else if (e.key === ' ') {
         e.preventDefault();
         setIsBionicMode(!isBionicMode);
+      } else if (e.key === 'h') {
+        setShowUI(!showUI);
+      } else if (e.key === 'd') {
+        setIsDarkMode(!isDarkMode);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentSectionIndex, sections.length, isBionicMode]);
+  }, [currentSectionIndex, sections.length, isBionicMode, showUI, isDarkMode]);
 
   // Mouse wheel event
   useEffect(() => {
-    const container = containerRef.current;
-    if (container) {
-      container.addEventListener('wheel', handleScroll, { passive: false });
-      return () => container.removeEventListener('wheel', handleScroll);
-    }
+    const container = document.body;
+    container.addEventListener('wheel', handleScroll, { passive: false });
+    return () => container.removeEventListener('wheel', handleScroll);
   }, [handleScroll]);
 
-  // Hide controls after inactivity
-  useEffect(() => {
-    const timer = setTimeout(() => setShowControls(false), 3000);
-    return () => clearTimeout(timer);
-  }, []);
-
   const currentSection = sections[currentSectionIndex];
-  const progress = sections.length > 0 ? ((currentSectionIndex + 1) / sections.length) * 100 : 0;
 
   return (
-    <div className="tiktok-reader">
-      {/* Floating Controls */}
-      <div className={`floating-controls ${showControls ? 'visible' : 'hidden'}`}>
-        {/* Progress Indicator */}
-        <div className="progress-dots">
-          {sections.map((_, index) => (
-            <div
-              key={index}
-              className={`progress-dot ${index === currentSectionIndex ? 'active' : ''} ${index < currentSectionIndex ? 'completed' : ''}`}
-              onClick={() => !isTransitioning && setCurrentSectionIndex(index)}
-            />
-          ))}
-        </div>
+    <div className={`tiktok-reader ${isDarkMode ? 'dark' : 'light'}`}>
+      {/* Settings Toggle */}
+      <button
+        className={`settings-toggle ${showUI ? 'visible' : 'hidden'}`}
+        onClick={() => setShowUI(!showUI)}
+        title="Toggle UI (H)"
+      >
+        {showUI ? <X size={20} /> : <Settings size={20} />}
+      </button>
 
-        {/* Control Buttons */}
-        <div className="control-buttons">
+      {/* Progress Bar */}
+      <div className={`progress-bar ${showUI ? 'visible' : 'hidden'}`}>
+        <div 
+          className="progress-fill"
+          style={{ 
+            width: `${sections.length > 0 ? ((currentSectionIndex + 1) / sections.length) * 100 : 0}%` 
+          }}
+        />
+      </div>
+
+      {/* Control Panel */}
+      <div className={`control-panel ${showUI ? 'visible' : 'hidden'}`}>
+        <div className="control-group">
           <button
             onClick={() => setIsBionicMode(!isBionicMode)}
-            className={`bionic-toggle ${isBionicMode ? 'active' : ''}`}
-            title="Toggle Bionic Reading"
+            className={`control-btn bionic-btn ${isBionicMode ? 'active' : ''}`}
+            title="Toggle Bionic Reading (Space)"
           >
-            {isBionicMode ? <Eye size={20} /> : <EyeOff size={20} />}
+            {isBionicMode ? <Eye size={18} /> : <EyeOff size={18} />}
+          </button>
+          
+          <button
+            onClick={() => setIsDarkMode(!isDarkMode)}
+            className={`control-btn theme-btn`}
+            title="Toggle Dark Mode (D)"
+          >
+            {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
           </button>
           
           <button
             onClick={onReset}
-            className="reset-button"
+            className="control-btn reset-btn"
             title="Upload New Document"
           >
-            <RotateCcw size={20} />
+            <RotateCcw size={18} />
           </button>
         </div>
 
-        {/* Navigation Hints */}
-        <div className="navigation-hints">
-          {currentSectionIndex > 0 && (
-            <div className="nav-hint nav-up">
-              <ArrowUp size={16} />
-              <span>Previous</span>
-            </div>
-          )}
-          {currentSectionIndex < sections.length - 1 && (
-            <div className="nav-hint nav-down">
-              <ArrowDown size={16} />
-              <span>Next</span>
-            </div>
-          )}
+        <div className="section-counter">
+          {currentSectionIndex + 1} / {sections.length}
         </div>
+      </div>
 
-        {/* Document Info */}
-        <div className="document-info">
-          <div className="doc-title">{fileName?.replace('.pdf', '')}</div>
-          <div className="section-info">
-            Section {currentSectionIndex + 1} of {sections.length}
-            {currentSection && ` • ${currentSection.wordCount} words`}
+      {/* Navigation Indicators */}
+      <div className={`nav-indicators ${showUI ? 'visible' : 'hidden'}`}>
+        {currentSectionIndex > 0 && (
+          <div className="nav-indicator nav-up">
+            <ArrowUp size={20} />
           </div>
-        </div>
+        )}
+        {currentSectionIndex < sections.length - 1 && (
+          <div className="nav-indicator nav-down">
+            <ArrowDown size={20} />
+          </div>
+        )}
       </div>
 
       {/* Main Content */}
       <div 
         ref={containerRef}
         className="section-container"
-        style={{
-          transition: isTransitioning ? 'transform 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94)' : 'none'
-        }}
       >
         {currentSection && (
           <div className="section-content">
             {currentSection.isBionic ? (
               <div
-                className="bionic-text"
+                className="text-content bionic-text"
                 dangerouslySetInnerHTML={{ __html: currentSection.processed }}
               />
             ) : (
-              <div className="regular-text">
+              <div className="text-content regular-text">
                 {formatTextWithParagraphs(currentSection.processed)}
               </div>
             )}
@@ -220,7 +213,6 @@ const TikTokReader = ({ text, fileName, onReset }) => {
   );
 };
 
-// Helper function for formatting regular text
 const formatTextWithParagraphs = (text) => {
   return text.split(/\n\s*\n/).map((paragraph, index) => (
     <p key={index} className="paragraph">

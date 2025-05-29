@@ -2,7 +2,7 @@
 'use client';
 
 import { useState } from "react";
-import FileUpload from "@/components/FileUpload";
+import ModernFileUpload from "@/components/ModernFileUpload";
 import TikTokReader from "@/components/TikTokReader";
 import "@/styles/styles.css";
 
@@ -22,9 +22,9 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen">
+    <>
       {!extractedText ? (
-        <FileUpload
+        <ModernFileUpload
           onTextExtracted={handleTextExtracted}
           isLoading={isLoading}
           setIsLoading={setIsLoading}
@@ -36,7 +36,7 @@ function App() {
           onReset={handleReset}
         />
       )}
-    </div>
+    </>
   );
 }
 
