@@ -1,8 +1,8 @@
-// components/Reader.js
+// src/components/Reader.js
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { ChevronLeft, Eye, EyeOff, RotateCcw, BookOpen } from "lucide-react";
-import ProgressBar from "./ProgressBar";
-import { formatBionicText } from "../utils/textFormatter";
+import VerticalProgressBar from "./VerticalProgressBar";
+import { formatBionicText, preserveTextFormatting } from "../utils/textFormatter";
 
 const Reader = ({ text, fileName, onReset }) => {
   const [isBionicMode, setIsBionicMode] = useState(false);
@@ -11,7 +11,9 @@ const Reader = ({ text, fileName, onReset }) => {
   const contentRef = useRef(null);
   const containerRef = useRef(null);
 
-  const totalWords = text.split(/\s+/).filter((word) => word.length > 0).length;
+  // Process text to preserve formatting
+  const formattedText = preserveTextFormatting(text);
+  const totalWords = formattedText.split(/\s+/).filter((word) => word.length > 0).length;
   const estimatedReadingTime = Math.ceil(totalWords / 200); // 200 words per minute
 
   const handleScroll = useCallback(() => {
@@ -37,14 +39,35 @@ const Reader = ({ text, fileName, onReset }) => {
   const renderText = () => {
     if (isBionicMode) {
       return (
-        <div dangerouslySetInnerHTML={{ __html: formatBionicText(text) }} />
+        <div 
+          className="bionic-text"
+          dangerouslySetInnerHTML={{ __html: formatBionicText(formattedText) }} 
+        />
       );
     }
-    return text;
+    return (
+      <div className="reading-content">
+        {formatTextWithParagraphs(formattedText)}
+      </div>
+    );
+  };
+
+  // Helper function to format text with proper paragraphs
+  const formatTextWithParagraphs = (text) => {
+    return text
+      .split(/\n\s*\n/) // Split on double line breaks (paragraph breaks)
+      .map((paragraph, index) => (
+        <p key={index} className="mb-6 leading-relaxed">
+          {paragraph.trim()}
+        </p>
+      ));
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col">
+    <div className="min-h-screen bg-gray-50 flex flex-col font-roboto">
+      {/* Vertical Progress Bar */}
+      <VerticalProgressBar progress={scrollProgress} />
+
       {/* Header */}
       <header className="bg-white border-b border-gray-200 sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-4 py-3">
@@ -58,12 +81,11 @@ const Reader = ({ text, fileName, onReset }) => {
                 <ChevronLeft className="w-5 h-5" />
               </button>
               <div>
-                <h2 className="font-semibold text-gray-900 truncate max-w-xs">
+                <h2 className="font-medium text-gray-900 truncate max-w-xs">
                   {fileName.replace(".pdf", "")}
                 </h2>
                 <p className="text-sm text-gray-500">
-                  {totalWords.toLocaleString()} words • ~{estimatedReadingTime}{" "}
-                  min read
+                  {totalWords.toLocaleString()} words • ~{estimatedReadingTime} min read • {Math.round(scrollProgress)}% complete
                 </p>
               </div>
             </div>
@@ -72,10 +94,10 @@ const Reader = ({ text, fileName, onReset }) => {
               <button
                 onClick={() => setIsBionicMode(!isBionicMode)}
                 className={`
-                  flex items-center space-x-2 px-4 py-2 rounded-lg transition-all
+                  flex items-center space-x-2 px-4 py-2 rounded-lg transition-all font-medium
                   ${
                     isBionicMode
-                      ? "bg-blue-500 text-white"
+                      ? "bg-blue-500 text-white shadow-md"
                       : "bg-gray-100 text-gray-700 hover:bg-gray-200"
                   }
                 `}
@@ -97,38 +119,34 @@ const Reader = ({ text, fileName, onReset }) => {
         </div>
       </header>
 
-      {/* Progress Bar */}
-      <ProgressBar
-        progress={scrollProgress}
-        wordsRead={wordsRead}
-        totalWords={totalWords}
-      />
-
       {/* Content */}
       <div ref={containerRef} className="flex-1 overflow-y-auto">
-        <div className="max-w-2xl mx-auto px-4 py-16">
+        <div className="max-w-3xl mx-auto px-6 py-16">
           <div
             ref={contentRef}
             className={`
-              prose prose-lg max-w-none
-              ${isBionicMode ? "bionic-text" : ""}
+              prose prose-lg max-w-none text-gray-800
+              ${isBionicMode ? "bionic-text" : "reading-content"}
             `}
+            style={{
+              fontSize: '1.125rem',
+              lineHeight: '1.8',
+              fontFamily: 'Roboto, sans-serif'
+            }}
           >
-            <div className="whitespace-pre-wrap leading-relaxed text-gray-800">
-              {renderText()}
-            </div>
+            {renderText()}
           </div>
 
           {/* End of document indicator */}
           <div className="mt-16 mb-8 text-center">
             <div className="inline-flex items-center space-x-2 text-gray-400">
               <BookOpen className="w-5 h-5" />
-              <span>End of document</span>
+              <span className="font-medium">End of document</span>
             </div>
-            <div className="mt-4">
+            <div className="mt-6">
               <button
                 onClick={onReset}
-                className="inline-flex items-center space-x-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors"
+                className="inline-flex items-center space-x-2 px-6 py-3 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors font-medium text-gray-700"
               >
                 <RotateCcw className="w-4 h-4" />
                 <span>Upload another PDF</span>

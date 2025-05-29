@@ -1,10 +1,9 @@
-// src/app/page.js - Add ErrorBoundary wrapper
+// src/app/page.js
 'use client';
 
 import { useState } from "react";
 import FileUpload from "@/components/FileUpload";
 import Reader from "@/components/Reader";
-import ErrorBoundary from "@/components/ErrorBoundary";
 import "@/styles/styles.css";
 
 function App() {
@@ -23,23 +22,21 @@ function App() {
   };
 
   return (
-    <ErrorBoundary>
-      <div className="min-h-screen bg-gray-50">
-        {!extractedText ? (
-          <FileUpload
-            onTextExtracted={handleTextExtracted}
-            isLoading={isLoading}
-            setIsLoading={setIsLoading}
-          />
-        ) : (
-          <Reader
-            text={extractedText}
-            fileName={fileName}
-            onReset={handleReset}
-          />
-        )}
-      </div>
-    </ErrorBoundary>
+    <div className="min-h-screen bg-gray-50 font-roboto">
+      {!extractedText ? (
+        <FileUpload
+          onTextExtracted={handleTextExtracted}
+          isLoading={isLoading}
+          setIsLoading={setIsLoading}
+        />
+      ) : (
+        <Reader
+          text={extractedText}
+          fileName={fileName}
+          onReset={handleReset}
+        />
+      )}
+    </div>
   );
 }
 

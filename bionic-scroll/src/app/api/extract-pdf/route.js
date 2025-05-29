@@ -397,28 +397,34 @@ function isValidText(text) {
 }
 
 function cleanupExtractedText(text) {
-  if (!text || typeof text !== 'string') {
-    return '';
+    if (!text || typeof text !== 'string') {
+      return '';
+    }
+  
+    return text
+      // First, normalize line endings
+      .replace(/\r\n/g, '\n')
+      .replace(/\r/g, '\n')
+      // Preserve intentional paragraph breaks
+      .replace(/\n\s*\n\s*\n+/g, '\n\n') // Multiple line breaks become double
+      .replace(/([.!?])\s*\n+\s*([A-Z])/g, '$1\n\n$2') // Period + line break + capital = new paragraph
+      // Fix sentence spacing
+      .replace(/([.!?])\s*([A-Z])/g, '$1 $2')
+      // Fix word boundaries
+      .replace(/([a-z])([A-Z])/g, '$1 $2')
+      // Remove excessive spaces within lines
+      .replace(/[^\S\n]+/g, ' ') // Replace all whitespace except newlines with single space
+      // Clean up quotes
+      .replace(/[""]/g, '"')
+      .replace(/['']/g, "'")
+      // Remove control characters but preserve newlines
+      .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]/g, '')
+      // Final cleanup
+      .replace(/[ \t]+/g, ' ') // Multiple spaces/tabs become single space
+      .replace(/\n +/g, '\n') // Remove spaces at start of lines
+      .replace(/ +\n/g, '\n') // Remove spaces at end of lines
+      .trim();
   }
-
-  return text
-    // Normalize whitespace
-    .replace(/\s+/g, ' ')
-    // Fix sentence spacing
-    .replace(/([.!?])\s*([A-Z])/g, '$1 $2')
-    // Fix word boundaries
-    .replace(/([a-z])([A-Z])/g, '$1 $2')
-    // Remove excessive punctuation
-    .replace(/[.]{3,}/g, '...')
-    // Clean up quotes
-    .replace(/[""]/g, '"')
-    .replace(/['']/g, "'")
-    // Remove control characters but keep basic punctuation
-    .replace(/[\x00-\x1F\x7F-\x9F]/g, ' ')
-    // Final cleanup
-    .replace(/\s{2,}/g, ' ')
-    .trim();
-}
 
 export async function OPTIONS() {
   return new NextResponse(null, {

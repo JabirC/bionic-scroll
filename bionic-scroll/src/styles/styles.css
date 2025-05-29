@@ -1,37 +1,84 @@
+/* src/styles/styles.css */
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
+
 .App {
-    font-family: sans-serif;
-    text-align: center;
-  }
-  
-  /* Custom styles for bionic reading */
-  .bionic-text {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
-      Ubuntu, Cantarell, sans-serif;
-  }
-  
-  .bionic-word strong {
-    font-weight: 700;
-  }
-  
-  /* Smooth scrolling */
-  * {
-    scroll-behavior: smooth;
-  }
-  
-  /* Custom scrollbar for the reader */
-  .overflow-y-auto::-webkit-scrollbar {
-    width: 10px;
-  }
-  
-  .overflow-y-auto::-webkit-scrollbar-track {
-    background: #f3f4f6;
-  }
-  
-  .overflow-y-auto::-webkit-scrollbar-thumb {
-    background: #d1d5db;
-    border-radius: 5px;
-  }
-  
-  .overflow-y-auto::-webkit-scrollbar-thumb:hover {
-    background: #9ca3af;
-  }
+  font-family: 'Roboto', sans-serif;
+  text-align: center;
+}
+
+/* Custom styles for bionic reading */
+.bionic-text {
+  font-family: 'Roboto', -apple-system, BlinkMacSystemFont, "Segoe UI", Oxygen,
+    Ubuntu, Cantarell, sans-serif;
+  line-height: 1.8;
+  letter-spacing: 0.01em;
+}
+
+.bionic-word strong {
+  font-weight: 700;
+  color: #1f2937;
+}
+
+/* Text formatting improvements */
+.reading-content {
+  font-family: 'Roboto', sans-serif;
+  line-height: 1.8;
+  letter-spacing: 0.01em;
+  word-spacing: 0.05em;
+}
+
+.reading-content p {
+  margin-bottom: 1.5rem;
+}
+
+/* Smooth scrolling */
+* {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar for the reader */
+.overflow-y-auto::-webkit-scrollbar {
+  width: 8px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-track {
+  background: #f9fafb;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 4px;
+}
+
+.overflow-y-auto::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
+}
+
+/* Vertical progress bar styles */
+.vertical-progress-container {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 4px;
+  height: 100vh;
+  background-color: rgba(229, 231, 235, 0.7);
+  z-index: 50;
+  transition: opacity 0.3s ease;
+}
+
+.vertical-progress-container:hover {
+  opacity: 1;
+  width: 6px;
+}
+
+.vertical-progress-bar {
+  width: 100%;
+  background: linear-gradient(to bottom, #3b82f6, #8b5cf6);
+  border-radius: 0 0 2px 2px;
+  transition: height 0.1s ease-out;
+}
+
+/* Hide horizontal progress bar */
+.horizontal-progress {
+  display: none;
+}
