@@ -24,13 +24,7 @@ git clone https://github.com/your-username/bioniscroll.git
 cd bionic-scroll
 ```
 
-### 2. cd to the bionic-scroll NextJs directory
-
-```
-cd bionic-scroll
-```
-
-### 3. Install Dependencies
+### 2. Install Dependencies
 
 ```
 npm install
@@ -38,7 +32,7 @@ npm install
 yarn install
 ```
 
-### 4. Run the Development Server
+### 3. Run the Development Server
 
 ```
 npm run dev
