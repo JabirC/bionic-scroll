@@ -1,6 +1,6 @@
 // src/components/TikTokReader.js
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Home, Sun, Moon, ChevronsUp, ChevronsDown, Eye, EyeOff } from "lucide-react";
+import { Home, Sun, Moon, ChevronsDown, EyeOff, Eye } from "lucide-react";
 import { TextProcessor } from "../utils/textProcessor";
 import BionicIcon from "./BionicIcon";
 import InlineSectionEditor from "./InlineSectionEditor";
@@ -175,7 +175,6 @@ const TikTokReader = ({ text, fileName, onReset }) => {
   }, [handleScroll]);
 
   const currentSection = sections[currentSectionIndex];
-  const canGoUp = currentSectionIndex > 0;
   const canGoDown = currentSectionIndex < sections.length - 1;
 
   // Prevent hydration mismatch
@@ -202,16 +201,7 @@ const TikTokReader = ({ text, fileName, onReset }) => {
         />
       </div>
 
-      {/* UI Toggle Button - Outside the control panel */}
-      <button
-        className={`ui-toggle-btn ${showUI ? 'ui-visible' : 'ui-hidden'}`}
-        onClick={() => setShowUI(!showUI)}
-        title={`${showUI ? 'Hide' : 'Show'} UI (H)`}
-      >
-        {showUI ? <EyeOff size={18} /> : <Eye size={18} />}
-      </button>
-
-      {/* Control Panel */}
+      {/* Control Panel with integrated UI toggle */}
       <div className={`control-panel ${showUI ? 'visible' : 'hidden'}`}>
         <div className="control-group">
           <button
@@ -249,23 +239,34 @@ const TikTokReader = ({ text, fileName, onReset }) => {
             onCancelEdit={() => setIsEditingSection(false)}
           />
         </div>
+
+        <div className="ui-toggle-section">
+          <button
+            className="ui-toggle-btn"
+            onClick={() => setShowUI(!showUI)}
+            title="Hide UI (H)"
+          >
+            <EyeOff size={18} />
+          </button>
+        </div>
       </div>
 
-      {/* Navigation Indicators - Smart Display */}
-      {(showScrollIndicators || !showUI) && (
+      {/* Standalone UI Toggle for when UI is hidden */}
+      <button
+        className={`standalone-ui-toggle ${showUI ? 'hidden' : 'visible'}`}
+        onClick={() => setShowUI(true)}
+        title="Show UI (H)"
+      >
+        <Eye size={18} />
+      </button>
+
+      {/* Navigation Indicators - Only down indicator */}
+      {(showScrollIndicators || !showUI) && canGoDown && (
         <div className="nav-indicators">
-          {canGoUp && (
-            <div className="nav-indicator nav-up">
-              <ChevronsUp size={16} />
-              <span>Scroll up</span>
-            </div>
-          )}
-          {canGoDown && (
-            <div className="nav-indicator nav-down">
-              <ChevronsDown size={16} />
-              <span>Scroll down</span>
-            </div>
-          )}
+          <div className="nav-indicator nav-down">
+            <ChevronsDown size={16} />
+            <span>Scroll down</span>
+          </div>
         </div>
       )}
 

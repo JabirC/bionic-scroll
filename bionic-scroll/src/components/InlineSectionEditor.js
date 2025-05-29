@@ -54,6 +54,12 @@ const InlineSectionEditor = ({
     }, 100);
   };
 
+  // Calculate appropriate width based on total sections
+  const getInputWidth = () => {
+    const totalDigits = totalSections.toString().length;
+    return Math.max(2, totalDigits) * 0.6 + 1; // rem units
+  };
+
   if (isEditing) {
     return (
       <form onSubmit={handleSubmit} className="section-editor-form">
@@ -65,20 +71,24 @@ const InlineSectionEditor = ({
           onKeyDown={handleKeyDown}
           onBlur={handleBlur}
           className="section-editor-input"
+          style={{ width: `${getInputWidth()}rem` }}
           placeholder={`1-${totalSections}`}
         />
-        <span className="section-total">/ {totalSections}</span>
+        <span className="section-separator">/ </span>
+        <span className="section-total">{totalSections}</span>
       </form>
     );
   }
 
   return (
     <button
-      className="section-counter"
+      className="section-counter-container"
       onClick={onStartEdit}
       title="Edit section number"
     >
-      {currentSection} / {totalSections}
+      <span className="section-current">{currentSection}</span>
+      <span className="section-separator">/ </span>
+      <span className="section-total">{totalSections}</span>
     </button>
   );
 };

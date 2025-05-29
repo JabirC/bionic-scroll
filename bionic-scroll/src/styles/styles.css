@@ -293,48 +293,11 @@ body {
   opacity: 0;
 }
 
-/* UI Toggle Button - Outside the control panel */
-.ui-toggle-btn {
-  position: fixed;
-  top: 1.5rem;
-  right: 1.5rem;
-  width: 44px;
-  height: 44px;
-  border: 1px solid var(--border-light);
-  border-radius: 12px;
-  background: white;
-  color: #374151;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-  z-index: 1001;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-.tiktok-reader.dark .ui-toggle-btn {
-  background: var(--surface-dark);
-  color: #f1f5f9;
-  border-color: var(--border-dark);
-}
-
-.ui-toggle-btn:hover {
-  transform: scale(1.05);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-}
-
-.ui-toggle-btn.ui-hidden {
-  background: var(--primary);
-  color: white;
-  border-color: var(--primary);
-}
-
-/* Control Panel - Positioned next to UI toggle */
+/* Control Panel - Unified with UI toggle */
 .control-panel {
   position: fixed;
   top: 1.5rem;
-  right: 5.5rem;
+  right: 1.5rem;
   display: flex;
   align-items: stretch;
   background: white;
@@ -344,6 +307,7 @@ body {
   box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
   border: 1px solid var(--border-light);
   overflow: hidden;
+  height: 46px; /* Fixed height */
 }
 
 .tiktok-reader.dark .control-panel {
@@ -394,9 +358,15 @@ body {
   color: var(--text-dark);
 }
 
+/* Subtle active state */
 .control-btn.active {
-  background: var(--primary);
-  color: white;
+  background: rgba(37, 99, 235, 0.1);
+  color: var(--primary);
+}
+
+.tiktok-reader.dark .control-btn.active {
+  background: rgba(37, 99, 235, 0.15);
+  color: #60a5fa;
 }
 
 /* Custom Bionic Icon */
@@ -416,19 +386,22 @@ body {
   font-weight: 400;
 }
 
-/* Section Info and Inline Editor */
+/* Section Info - Fixed width to prevent shifting */
 .section-info {
   display: flex;
   align-items: center;
-  padding: 0 1rem;
+  min-width: 80px; /* Fixed minimum width */
+  justify-content: center;
   border-left: 1px solid var(--border-light);
+  border-right: 1px solid var(--border-light);
 }
 
 .tiktok-reader.dark .section-info {
   border-color: var(--border-dark);
 }
 
-.section-counter {
+/* Section Counter - Fixed width container */
+.section-counter-container {
   font-size: 0.875rem;
   font-weight: 600;
   color: #374151;
@@ -438,29 +411,123 @@ body {
   padding: 0.25rem 0.5rem;
   border-radius: 6px;
   transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 60px; /* Fixed width to prevent shifting */
 }
 
-.tiktok-reader.dark .section-counter {
+.tiktok-reader.dark .section-counter-container {
   color: #e5e7eb;
 }
 
-.section-counter:hover {
+.section-counter-container:hover {
   background: rgba(0, 0, 0, 0.05);
 }
 
-.tiktok-reader.dark .section-counter:hover {
+.tiktok-reader.dark .section-counter-container:hover {
   background: rgba(255, 255, 255, 0.05);
+}
+
+.section-current {
+  text-align: right;
+  min-width: 1ch; /* Minimum width for single digit */
+}
+
+.section-separator {
+  margin: 0 0.125rem;
+  opacity: 0.6;
+}
+
+.section-total {
+  opacity: 0.8;
+}
+
+/* UI Toggle Section */
+.ui-toggle-section {
+  display: flex;
+  align-items: stretch;
+}
+
+.ui-toggle-btn {
+  width: 46px;
+  height: 46px;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.tiktok-reader.dark .ui-toggle-btn {
+  color: #94a3b8;
+}
+
+.ui-toggle-btn:hover {
+  background: rgba(0, 0, 0, 0.05);
+  color: var(--text-light);
+}
+
+.tiktok-reader.dark .ui-toggle-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-dark);
+}
+
+/* Standalone UI Toggle - For when UI is hidden */
+.standalone-ui-toggle {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  width: 46px;
+  height: 46px;
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  background: white;
+  color: #374151;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  z-index: 1001;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.tiktok-reader.dark .standalone-ui-toggle {
+  background: var(--surface-dark);
+  color: #f1f5f9;
+  border-color: var(--border-dark);
+}
+
+.standalone-ui-toggle:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.standalone-ui-toggle.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-20px);
+}
+
+.standalone-ui-toggle.visible {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
 }
 
 /* Inline Section Editor */
 .section-editor-form {
   display: flex;
   align-items: center;
-  gap: 0.25rem;
+  justify-content: center;
+  min-width: 60px; /* Match container width */
 }
 
 .section-editor-input {
-  width: 3rem;
   padding: 0.25rem 0.5rem;
   border: 1px solid var(--border-light);
   border-radius: 4px;
@@ -470,6 +537,7 @@ body {
   font-weight: 600;
   text-align: center;
   transition: all 0.2s ease;
+  min-width: 2rem;
 }
 
 .tiktok-reader.dark .section-editor-input {
@@ -489,35 +557,23 @@ body {
   border-color: #ef4444;
 }
 
-.section-total {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: #6b7280;
-}
-
-.tiktok-reader.dark .section-total {
-  color: #9ca3af;
-}
-
 @keyframes shake {
   0%, 100% { transform: translateX(0); }
   25% { transform: translateX(-2px); }
   75% { transform: translateX(2px); }
 }
 
-/* Navigation Indicators - Smart Display */
+/* Navigation Indicators - Only down indicator */
 .nav-indicators {
   position: fixed;
   left: 50%;
+  bottom: var(--safe-area-bottom);
   transform: translateX(-50%);
   z-index: 900;
   transition: opacity 0.3s ease;
 }
 
 .nav-indicator {
-  position: absolute;
-  left: 50%;
-  transform: translateX(-50%);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -538,26 +594,9 @@ body {
   border-color: rgba(255, 255, 255, 0.05);
 }
 
-.nav-indicator.nav-up {
-  top: var(--safe-area-top);
-}
-
-.nav-indicator.nav-down {
-  bottom: var(--safe-area-bottom);
-}
-
 .nav-indicator svg {
-  animation: bounce-vertical 2s ease-in-out infinite;
+  animation: bounce-vertical-down 2s ease-in-out infinite;
   opacity: 0.8;
-}
-
-@keyframes bounce-vertical {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-4px); }
-}
-
-.nav-indicator.nav-down svg {
-  animation-name: bounce-vertical-down;
 }
 
 @keyframes bounce-vertical-down {
@@ -590,10 +629,14 @@ body {
   max-width: var(--max-content-width);
   margin: 0 auto;
   padding: 0 2rem;
+  max-height: 100%;
+  overflow: hidden;
 }
 
 .text-wrapper {
   width: 100%;
+  max-height: 100%;
+  overflow: hidden;
 }
 
 .text-content {
@@ -603,6 +646,8 @@ body {
   letter-spacing: -0.01em;
   text-align: left;
   color: var(--text-light);
+  max-height: 100%;
+  overflow: hidden;
 }
 
 .tiktok-reader.dark .text-content {
@@ -687,18 +732,22 @@ body {
   
   .control-panel {
     top: 1rem;
-    right: 4rem;
+    right: 1rem;
   }
 
-  .ui-toggle-btn {
+  .standalone-ui-toggle {
     top: 1rem;
     right: 1rem;
     width: 40px;
     height: 40px;
   }
 
-  .control-btn {
+  .control-btn, .ui-toggle-btn {
     width: 42px;
+    height: 42px;
+  }
+
+  .control-panel {
     height: 42px;
   }
 }
@@ -722,20 +771,32 @@ body {
     font-size: 0.7rem;
   }
 
-  .control-btn {
+  .control-btn, .ui-toggle-btn {
     width: 40px;
     height: 40px;
   }
 
+  .control-panel {
+    height: 40px;
+  }
+
   .section-info {
-    padding: 0 0.75rem;
+    min-width: 60px;
+  }
+
+  .section-counter-container {
+    min-width: 50px;
   }
 }
 
 /* Touch-friendly mobile adjustments */
 @media (hover: none) and (pointer: coarse) {
-  .control-btn, .ui-toggle-btn {
+  .control-btn, .ui-toggle-btn, .standalone-ui-toggle {
     width: 48px;
+    height: 48px;
+  }
+
+  .control-panel {
     height: 48px;
   }
 }
