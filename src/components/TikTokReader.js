@@ -22,52 +22,7 @@ const TikTokReader = ({ text, fileName, onReset, fileId }) => {
   const fileLibrary = useRef(new FileLibrary()).current;
   const lastScrollTime = useRef(Date.now());
 
-  // at the top of your component, alongside your other refs:
-const touchStartY = useRef(0);
-const touchEndY   = useRef(0);
-
-useEffect(() => {
-  const swipeThreshold = 50; // minimum px distance for a swipe
-
-  const handleTouchStart = (e) => {
-    if (isEditingSection) return;
-    touchStartY.current = e.touches[0].clientY;
-  };
-
-  const handleTouchMove = (e) => {
-    touchEndY.current = e.touches[0].clientY;
-  };
-
-  const handleTouchEnd = () => {
-    if (isEditingSection || isTransitioning) return;
-
-    const deltaY = touchStartY.current - touchEndY.current;
-    if (Math.abs(deltaY) < swipeThreshold) return;
-
-    if (deltaY > 0 && currentSectionIndex < sections.length - 1) {
-      navigateToSection(currentSectionIndex + 1, 'down');
-    } else if (deltaY < 0 && currentSectionIndex > 0) {
-      navigateToSection(currentSectionIndex - 1, 'up');
-    }
-  };
-
-  const container = document.body; // or containerRef.current
-  container.addEventListener('touchstart', handleTouchStart, { passive: true });
-  container.addEventListener('touchmove',  handleTouchMove,  { passive: true });
-  container.addEventListener('touchend',   handleTouchEnd);
-
-  return () => {
-    container.removeEventListener('touchstart', handleTouchStart);
-    container.removeEventListener('touchmove',  handleTouchMove);
-    container.removeEventListener('touchend',   handleTouchEnd);
-  };
-}, [
-  currentSectionIndex,
-  sections.length,
-  isEditingSection,
-  isTransitioning,
-  navigateToSection
-]);
+  
 
   // Handle hydration and theme
   useEffect(() => {
