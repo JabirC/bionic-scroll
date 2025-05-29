@@ -1,93 +1,73 @@
 // src/utils/textProcessor.js
 export class TextProcessor {
     constructor() {
-      this.chunkSize = 10000; // Process 10k characters at a time
-      this.batchSize = 50; // Process 50 chunks per batch
+      this.sectionSize = 800; // Words per section (like TikTok video length)
+      this.threshold = 0.7; // Scroll threshold to advance to next section
     }
   
-    // Split text into manageable chunks while preserving paragraphs
-    splitTextIntoChunks(text) {
-      const paragraphs = text.split(/\n\s*\n/);
-      const chunks = [];
-      let currentChunk = '';
-      let currentSize = 0;
+    // Split text into TikTok-style sections
+    splitTextIntoSections(text) {
+      const sentences = text.split(/(?<=[.!?])\s+/);
+      const sections = [];
+      let currentSection = '';
+      let wordCount = 0;
   
-      for (const paragraph of paragraphs) {
-        const paragraphWithBreaks = paragraph + '\n\n';
+      for (const sentence of sentences) {
+        const sentenceWords = sentence.split(/\s+/).length;
         
-        if (currentSize + paragraphWithBreaks.length > this.chunkSize && currentChunk) {
-          chunks.push({
-            content: currentChunk.trim(),
-            isComplete: true
+        if (wordCount + sentenceWords > this.sectionSize && currentSection) {
+          sections.push({
+            content: currentSection.trim(),
+            wordCount: wordCount,
+            id: sections.length
           });
-          currentChunk = paragraphWithBreaks;
-          currentSize = paragraphWithBreaks.length;
+          currentSection = sentence + ' ';
+          wordCount = sentenceWords;
         } else {
-          currentChunk += paragraphWithBreaks;
-          currentSize += paragraphWithBreaks.length;
+          currentSection += sentence + ' ';
+          wordCount += sentenceWords;
         }
       }
   
-      if (currentChunk) {
-        chunks.push({
-          content: currentChunk.trim(),
-          isComplete: true
+      if (currentSection.trim()) {
+        sections.push({
+          content: currentSection.trim(),
+          wordCount: wordCount,
+          id: sections.length
         });
       }
   
-      return chunks;
+      return sections;
     }
   
-    // Process chunks in batches
-    async processTextInBatches(text, onBatchComplete, isBionic = false) {
-      const chunks = this.splitTextIntoChunks(text);
-      const totalBatches = Math.ceil(chunks.length / this.batchSize);
-      
-      for (let batchIndex = 0; batchIndex < totalBatches; batchIndex++) {
-        const batchStart = batchIndex * this.batchSize;
-        const batchEnd = Math.min(batchStart + this.batchSize, chunks.length);
-        const batchChunks = chunks.slice(batchStart, batchEnd);
-        
-        // Process batch with small delay to prevent blocking
-        await new Promise(resolve => {
-          setTimeout(() => {
-            const processedChunks = batchChunks.map(chunk => ({
-              ...chunk,
-              processed: isBionic ? this.formatBionicTextFast(chunk.content) : chunk.content,
-              isBionic
-            }));
-            
-            onBatchComplete({
-              batchIndex,
-              chunks: processedChunks,
-              isComplete: batchIndex === totalBatches - 1,
-              progress: ((batchIndex + 1) / totalBatches) * 100
-            });
-            
-            resolve();
-          }, 0);
-        });
-      }
-    }
-  
-    // Optimized bionic text formatting
-    formatBionicTextFast(text) {
-      // Use regex for faster processing while preserving formatting
+    // Updated bionic text formatting
+    formatBionicTextOptimized(text) {
       return text.replace(/\b([a-zA-Z]+)\b/g, (word) => {
         if (word.length <= 1) return word;
   
         let boldLength;
         if (word.length <= 3) {
-          boldLength = 1;
-        } else if (word.length <= 6) {
-          boldLength = 2;
+          boldLength = 1; // Only first letter
         } else {
-          boldLength = Math.ceil(word.length * 0.4);
+          boldLength = Math.ceil(word.length * 0.5); // 50% rounded up
         }
   
         const boldPart = word.slice(0, boldLength);
         const normalPart = word.slice(boldLength);
         return `<span class="bionic-word"><strong>${boldPart}</strong>${normalPart}</span>`;
       });
+    }
+  
+    // Process single section
+    processSection(section, isBionic = false) {
+      const processed = isBionic 
+        ? this.formatBionicTextOptimized(section.content)
+        : section.content;
+  
+      return {
+        ...section,
+        processed,
+        isBionic
+      };
     }
   }

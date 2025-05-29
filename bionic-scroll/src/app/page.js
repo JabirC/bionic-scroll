@@ -3,7 +3,7 @@
 
 import { useState } from "react";
 import FileUpload from "@/components/FileUpload";
-import Reader from "@/components/Reader";
+import TikTokReader from "@/components/TikTokReader";
 import "@/styles/styles.css";
 
 function App() {
@@ -22,7 +22,7 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 font-roboto">
+    <div className="min-h-screen">
       {!extractedText ? (
         <FileUpload
           onTextExtracted={handleTextExtracted}
@@ -30,7 +30,7 @@ function App() {
           setIsLoading={setIsLoading}
         />
       ) : (
-        <Reader
+        <TikTokReader
           text={extractedText}
           fileName={fileName}
           onReset={handleReset}
