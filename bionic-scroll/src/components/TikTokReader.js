@@ -1,7 +1,8 @@
 // src/components/TikTokReader.js
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { RotateCcw, Eye, EyeOff, ChevronsUp, ChevronsDown, Settings2, Moon, Sun } from "lucide-react";
+import { Upload, Palette, BookOpen, ChevronsUp, ChevronsDown, Eye } from "lucide-react";
 import { TextProcessor } from "../utils/textProcessor";
+import SectionJumper from "./SectionJumper";
 
 const TikTokReader = ({ text, fileName, onReset }) => {
   const [sections, setSections] = useState([]);
@@ -9,11 +10,24 @@ const TikTokReader = ({ text, fileName, onReset }) => {
   const [isBionicMode, setIsBionicMode] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [showUI, setShowUI] = useState(true);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('bioniScroll-theme') === 'dark';
+    }
+    return false;
+  });
+  const [showScrollIndicators, setShowScrollIndicators] = useState(false);
+  const [showSectionJumper, setShowSectionJumper] = useState(false);
   
   const containerRef = useRef(null);
   const textProcessor = useRef(new TextProcessor()).current;
   const lastScrollTime = useRef(Date.now());
+  const scrollIndicatorTimeout = useRef(null);
+
+  // Save theme preference
+  useEffect(() => {
+    localStorage.setItem('bioniScroll-theme', isDarkMode ? 'dark' : 'light');
+  }, [isDarkMode]);
 
   // Initialize sections with screen-sized chunks
   useEffect(() => {
@@ -25,6 +39,23 @@ const TikTokReader = ({ text, fileName, onReset }) => {
     }
   }, [text, textProcessor]);
 
+  // Recalculate sections on window resize
+  useEffect(() => {
+    const handleResize = () => {
+      if (text) {
+        const rawSections = textProcessor.splitTextIntoScreenSections(text);
+        setSections(rawSections.map(section => 
+          textProcessor.processSection(section, isBionicMode)
+        ));
+        // Reset to first section to avoid index out of bounds
+        setCurrentSectionIndex(0);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [text, textProcessor, isBionicMode]);
+
   // Re-process sections when bionic mode changes
   useEffect(() => {
     if (sections.length > 0) {
@@ -33,6 +64,17 @@ const TikTokReader = ({ text, fileName, onReset }) => {
       ));
     }
   }, [isBionicMode, textProcessor]);
+
+  // Show scroll indicators temporarily
+  const showScrollIndicatorsTemporarily = useCallback(() => {
+    setShowScrollIndicators(true);
+    if (scrollIndicatorTimeout.current) {
+      clearTimeout(scrollIndicatorTimeout.current);
+    }
+    scrollIndicatorTimeout.current = setTimeout(() => {
+      setShowScrollIndicators(false);
+    }, 2000);
+  }, []);
 
   // Handle scroll for navigation
   const handleScroll = useCallback((e) => {
@@ -46,6 +88,9 @@ const TikTokReader = ({ text, fileName, onReset }) => {
 
     if (isTransitioning) return;
 
+    // Show scroll indicators when user attempts to scroll
+    showScrollIndicatorsTemporarily();
+
     const scrollThreshold = 50;
     if (Math.abs(deltaY) < scrollThreshold) return;
 
@@ -54,7 +99,7 @@ const TikTokReader = ({ text, fileName, onReset }) => {
     } else if (deltaY < 0 && currentSectionIndex > 0) {
       navigateToSection(currentSectionIndex - 1, 'up');
     }
-  }, [currentSectionIndex, sections.length, isTransitioning]);
+  }, [currentSectionIndex, sections.length, isTransitioning, showScrollIndicatorsTemporarily]);
 
   const navigateToSection = (newIndex, direction) => {
     setIsTransitioning(true);
@@ -80,9 +125,20 @@ const TikTokReader = ({ text, fileName, onReset }) => {
     }
   };
 
+  const jumpToSection = (sectionNumber) => {
+    const newIndex = sectionNumber - 1;
+    if (newIndex >= 0 && newIndex < sections.length && newIndex !== currentSectionIndex) {
+      const direction = newIndex > currentSectionIndex ? 'down' : 'up';
+      navigateToSection(newIndex, direction);
+    }
+    setShowSectionJumper(false);
+  };
+
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e) => {
+      if (showSectionJumper) return; // Don't handle navigation when section jumper is open
+
       if (e.key === 'ArrowDown' && currentSectionIndex < sections.length - 1) {
         navigateToSection(currentSectionIndex + 1, 'down');
       } else if (e.key === 'ArrowUp' && currentSectionIndex > 0) {
@@ -95,12 +151,17 @@ const TikTokReader = ({ text, fileName, onReset }) => {
         setShowUI(!showUI);
       } else if (e.key === 'd' || e.key === 'D') {
         setIsDarkMode(!isDarkMode);
+      } else if (e.key === 'g' || e.key === 'G') {
+        e.preventDefault();
+        setShowSectionJumper(true);
+      } else if (e.key === 'Escape') {
+        setShowSectionJumper(false);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentSectionIndex, sections.length, isBionicMode, showUI, isDarkMode]);
+  }, [currentSectionIndex, sections.length, isBionicMode, showUI, isDarkMode, showSectionJumper]);
 
   // Mouse wheel event
   useEffect(() => {
@@ -110,6 +171,8 @@ const TikTokReader = ({ text, fileName, onReset }) => {
   }, [handleScroll]);
 
   const currentSection = sections[currentSectionIndex];
+  const canGoUp = currentSectionIndex > 0;
+  const canGoDown = currentSectionIndex < sections.length - 1;
 
   return (
     <div className={`tiktok-reader ${isDarkMode ? 'dark' : 'light'}`}>
@@ -123,68 +186,81 @@ const TikTokReader = ({ text, fileName, onReset }) => {
         />
       </div>
 
-      {/* Settings Toggle - Always visible */}
-      <button
-        className="settings-toggle"
-        onClick={() => setShowUI(!showUI)}
-        title="Toggle UI (H)"
-      >
-        <Settings2 size={20} />
-      </button>
-
       {/* Control Panel */}
       <div className={`control-panel ${showUI ? 'visible' : 'hidden'}`}>
         <div className="control-group">
           <button
             onClick={() => setIsBionicMode(!isBionicMode)}
-            className={`control-btn bionic-btn ${isBionicMode ? 'active' : ''}`}
+            className={`control-btn ${isBionicMode ? 'active' : ''}`}
             title="Toggle Bionic Reading (Space)"
           >
-            {isBionicMode ? <Eye size={18} /> : <EyeOff size={18} />}
-            <span className="control-label">Bionic</span>
+            <Eye size={18} />
           </button>
           
           <button
             onClick={() => setIsDarkMode(!isDarkMode)}
-            className={`control-btn theme-btn`}
-            title="Toggle Dark Mode (D)"
+            className="control-btn"
+            title="Toggle Theme (D)"
           >
-            {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
-            <span className="control-label">Theme</span>
+            <Palette size={18} />
           </button>
           
           <button
             onClick={onReset}
-            className="control-btn reset-btn"
+            className="control-btn"
             title="Upload New Document"
           >
-            <RotateCcw size={18} />
-            <span className="control-label">New PDF</span>
+            <Upload size={18} />
+          </button>
+
+          <button
+            onClick={() => setShowUI(!showUI)}
+            className="control-btn"
+            title="Hide UI (H)"
+          >
+            <BookOpen size={18} />
           </button>
         </div>
 
         <div className="section-info">
-          <span className="section-counter">
+          <button
+            className="section-counter"
+            onClick={() => setShowSectionJumper(true)}
+            title="Jump to section (G)"
+          >
             {currentSectionIndex + 1} / {sections.length}
-          </span>
+          </button>
         </div>
       </div>
 
-      {/* Navigation Indicators */}
-      <div className={`nav-indicators ${showUI ? 'visible' : 'hidden'}`}>
-        {currentSectionIndex > 0 && (
-          <div className="nav-indicator nav-up">
-            <ChevronsUp size={16} />
-            <span>Scroll up</span>
-          </div>
-        )}
-        {currentSectionIndex < sections.length - 1 && (
-          <div className="nav-indicator nav-down">
-            <ChevronsDown size={16} />
-            <span>Scroll down</span>
-          </div>
-        )}
-      </div>
+      {/* Navigation Indicators - Smart Display */}
+      {(showScrollIndicators || !showUI) && (
+        <div className="nav-indicators">
+          {canGoUp && (
+            <div className="nav-indicator nav-up">
+              <ChevronsUp size={16} />
+              <span>Scroll up</span>
+            </div>
+          )}
+          {canGoDown && (
+            <div className="nav-indicator nav-down">
+              <ChevronsDown size={16} />
+              <span>Scroll down</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Section Jumper Modal */}
+      {showSectionJumper && (
+        <SectionJumper
+          currentSection={currentSectionIndex + 1}
+          totalSections={sections.length}
+          onJumpToSection={jumpToSection}
+          onClose={() => setShowSectionJumper(false)}
+          isDarkMode={isDarkMode}
+        />
+      )}
 
       {/* Main Content */}
       <div className="content-wrapper">

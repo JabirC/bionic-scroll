@@ -1,37 +1,61 @@
 // src/utils/textProcessor.js
 export class TextProcessor {
     constructor() {
-      this.wordsPerScreen = 120; // Reduced for better readability
+      this.fontSize = 22; // 1.375rem = 22px
+      this.lineHeight = 1.9;
+      this.charWidth = 0.6; // Approximate character width ratio
     }
   
-    // Split text into screen-sized sections
+    calculateSectionCapacity() {
+      const safeAreaTop = 80;
+      const safeAreaBottom = 80;
+      const horizontalPadding = 64; // 2rem on each side
+      const maxContentWidth = 720;
+      
+      const availableHeight = window.innerHeight - safeAreaTop - safeAreaBottom;
+      const availableWidth = Math.min(window.innerWidth - horizontalPadding, maxContentWidth);
+      
+      const lineHeightPx = this.fontSize * this.lineHeight;
+      const maxLines = Math.floor(availableHeight / lineHeightPx) - 2; // Buffer for margins
+      const charsPerLine = Math.floor(availableWidth / (this.fontSize * this.charWidth));
+      
+      return {
+        maxLines: Math.max(5, maxLines), // Minimum 5 lines
+        charsPerLine: Math.max(50, charsPerLine), // Minimum 50 chars
+        maxChars: Math.max(250, maxLines * charsPerLine * 0.8) // 80% efficiency
+      };
+    }
+  
     splitTextIntoScreenSections(text) {
+      const { maxChars } = this.calculateSectionCapacity();
       const sentences = text.split(/(?<=[.!?])\s+/);
       const sections = [];
       let currentSection = '';
-      let wordCount = 0;
+      let charCount = 0;
   
       for (const sentence of sentences) {
-        const sentenceWords = sentence.split(/\s+/).length;
+        const sentenceLength = sentence.length;
         
-        if (wordCount + sentenceWords > this.wordsPerScreen && currentSection) {
+        // If adding this sentence would exceed capacity and we have content
+        if (charCount + sentenceLength > maxChars && currentSection.trim()) {
           sections.push({
             content: currentSection.trim(),
-            wordCount: wordCount,
+            charCount: charCount,
             id: sections.length
           });
           currentSection = sentence + ' ';
-          wordCount = sentenceWords;
+          charCount = sentenceLength + 1;
         } else {
           currentSection += sentence + ' ';
-          wordCount += sentenceWords;
+          charCount += sentenceLength + 1;
         }
       }
   
+      // Add the last section if it has content
       if (currentSection.trim()) {
         sections.push({
           content: currentSection.trim(),
-          wordCount: wordCount,
+          charCount: charCount,
           id: sections.length
         });
       }
@@ -58,7 +82,6 @@ export class TextProcessor {
       });
     }
   
-    // Format text consistently whether bionic is on or off
     formatText(text) {
       return text
         .split(/\n\s*\n/)

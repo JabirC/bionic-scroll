@@ -1,4 +1,4 @@
-// components/ProgressBar.js
+//src/components/ProgressBar.js
 import React from "react";
 import { Clock, BookOpen } from "lucide-react";
 

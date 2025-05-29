@@ -1,5 +1,5 @@
 // src/components/ModernFileUpload.js
-import React, { useCallback, useState } from "react";
+import React, { useCallback, useState, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { extractTextFromPDF } from "../utils/pdfExtractor";
 import { 
@@ -14,7 +14,17 @@ import {
 } from "lucide-react";
 
 const ModernFileUpload = ({ onTextExtracted, isLoading, setIsLoading }) => {
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('bioniScroll-theme') === 'dark';
+    }
+    return false;
+  });
+
+  // Save theme preference
+  useEffect(() => {
+    localStorage.setItem('bioniScroll-theme', isDarkMode ? 'dark' : 'light');
+  }, [isDarkMode]);
 
   const onDrop = useCallback(
     async (acceptedFiles) => {
