@@ -1,8 +1,9 @@
 // src/components/TikTokReader.js
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Upload, Palette, BookOpen, ChevronsUp, ChevronsDown, Eye } from "lucide-react";
+import { Home, Sun, Moon, ChevronsUp, ChevronsDown, Eye, EyeOff } from "lucide-react";
 import { TextProcessor } from "../utils/textProcessor";
-import SectionJumper from "./SectionJumper";
+import BionicIcon from "./BionicIcon";
+import InlineSectionEditor from "./InlineSectionEditor";
 
 const TikTokReader = ({ text, fileName, onReset }) => {
   const [sections, setSections] = useState([]);
@@ -10,24 +11,31 @@ const TikTokReader = ({ text, fileName, onReset }) => {
   const [isBionicMode, setIsBionicMode] = useState(false);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [showUI, setShowUI] = useState(true);
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('bioniScroll-theme') === 'dark';
-    }
-    return false;
-  });
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const [showScrollIndicators, setShowScrollIndicators] = useState(false);
-  const [showSectionJumper, setShowSectionJumper] = useState(false);
+  const [isEditingSection, setIsEditingSection] = useState(false);
+  const [isClient, setIsClient] = useState(false);
   
   const containerRef = useRef(null);
   const textProcessor = useRef(new TextProcessor()).current;
   const lastScrollTime = useRef(Date.now());
   const scrollIndicatorTimeout = useRef(null);
 
+  // Handle hydration and theme
+  useEffect(() => {
+    setIsClient(true);
+    const savedTheme = localStorage.getItem('bioniScroll-theme');
+    if (savedTheme) {
+      setIsDarkMode(savedTheme === 'dark');
+    }
+  }, []);
+
   // Save theme preference
   useEffect(() => {
-    localStorage.setItem('bioniScroll-theme', isDarkMode ? 'dark' : 'light');
-  }, [isDarkMode]);
+    if (isClient) {
+      localStorage.setItem('bioniScroll-theme', isDarkMode ? 'dark' : 'light');
+    }
+  }, [isDarkMode, isClient]);
 
   // Initialize sections with screen-sized chunks
   useEffect(() => {
@@ -47,7 +55,6 @@ const TikTokReader = ({ text, fileName, onReset }) => {
         setSections(rawSections.map(section => 
           textProcessor.processSection(section, isBionicMode)
         ));
-        // Reset to first section to avoid index out of bounds
         setCurrentSectionIndex(0);
       }
     };
@@ -80,6 +87,8 @@ const TikTokReader = ({ text, fileName, onReset }) => {
   const handleScroll = useCallback((e) => {
     e.preventDefault();
     
+    if (isEditingSection) return; // Don't navigate while editing
+
     const now = Date.now();
     const deltaY = e.deltaY;
     
@@ -88,7 +97,6 @@ const TikTokReader = ({ text, fileName, onReset }) => {
 
     if (isTransitioning) return;
 
-    // Show scroll indicators when user attempts to scroll
     showScrollIndicatorsTemporarily();
 
     const scrollThreshold = 50;
@@ -99,7 +107,7 @@ const TikTokReader = ({ text, fileName, onReset }) => {
     } else if (deltaY < 0 && currentSectionIndex > 0) {
       navigateToSection(currentSectionIndex - 1, 'up');
     }
-  }, [currentSectionIndex, sections.length, isTransitioning, showScrollIndicatorsTemporarily]);
+  }, [currentSectionIndex, sections.length, isTransitioning, showScrollIndicatorsTemporarily, isEditingSection]);
 
   const navigateToSection = (newIndex, direction) => {
     setIsTransitioning(true);
@@ -131,13 +139,12 @@ const TikTokReader = ({ text, fileName, onReset }) => {
       const direction = newIndex > currentSectionIndex ? 'down' : 'up';
       navigateToSection(newIndex, direction);
     }
-    setShowSectionJumper(false);
   };
 
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (showSectionJumper) return; // Don't handle navigation when section jumper is open
+      if (isEditingSection) return; // Don't handle navigation when editing section
 
       if (e.key === 'ArrowDown' && currentSectionIndex < sections.length - 1) {
         navigateToSection(currentSectionIndex + 1, 'down');
@@ -151,17 +158,14 @@ const TikTokReader = ({ text, fileName, onReset }) => {
         setShowUI(!showUI);
       } else if (e.key === 'd' || e.key === 'D') {
         setIsDarkMode(!isDarkMode);
-      } else if (e.key === 'g' || e.key === 'G') {
-        e.preventDefault();
-        setShowSectionJumper(true);
       } else if (e.key === 'Escape') {
-        setShowSectionJumper(false);
+        setIsEditingSection(false);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentSectionIndex, sections.length, isBionicMode, showUI, isDarkMode, showSectionJumper]);
+  }, [currentSectionIndex, sections.length, isBionicMode, showUI, isDarkMode, isEditingSection]);
 
   // Mouse wheel event
   useEffect(() => {
@@ -173,6 +177,18 @@ const TikTokReader = ({ text, fileName, onReset }) => {
   const currentSection = sections[currentSectionIndex];
   const canGoUp = currentSectionIndex > 0;
   const canGoDown = currentSectionIndex < sections.length - 1;
+
+  // Prevent hydration mismatch
+  if (!isClient) {
+    return (
+      <div className="tiktok-reader light">
+        <div className="loading-state">
+          <div className="loading-spinner" />
+          <p>Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`tiktok-reader ${isDarkMode ? 'dark' : 'light'}`}>
@@ -186,6 +202,15 @@ const TikTokReader = ({ text, fileName, onReset }) => {
         />
       </div>
 
+      {/* UI Toggle Button - Outside the control panel */}
+      <button
+        className={`ui-toggle-btn ${showUI ? 'ui-visible' : 'ui-hidden'}`}
+        onClick={() => setShowUI(!showUI)}
+        title={`${showUI ? 'Hide' : 'Show'} UI (H)`}
+      >
+        {showUI ? <EyeOff size={18} /> : <Eye size={18} />}
+      </button>
+
       {/* Control Panel */}
       <div className={`control-panel ${showUI ? 'visible' : 'hidden'}`}>
         <div className="control-group">
@@ -194,7 +219,7 @@ const TikTokReader = ({ text, fileName, onReset }) => {
             className={`control-btn ${isBionicMode ? 'active' : ''}`}
             title="Toggle Bionic Reading (Space)"
           >
-            <Eye size={18} />
+            <BionicIcon size={16} />
           </button>
           
           <button
@@ -202,34 +227,27 @@ const TikTokReader = ({ text, fileName, onReset }) => {
             className="control-btn"
             title="Toggle Theme (D)"
           >
-            <Palette size={18} />
+            {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
           </button>
           
           <button
             onClick={onReset}
             className="control-btn"
-            title="Upload New Document"
+            title="Go Home"
           >
-            <Upload size={18} />
-          </button>
-
-          <button
-            onClick={() => setShowUI(!showUI)}
-            className="control-btn"
-            title="Hide UI (H)"
-          >
-            <BookOpen size={18} />
+            <Home size={18} />
           </button>
         </div>
 
         <div className="section-info">
-          <button
-            className="section-counter"
-            onClick={() => setShowSectionJumper(true)}
-            title="Jump to section (G)"
-          >
-            {currentSectionIndex + 1} / {sections.length}
-          </button>
+          <InlineSectionEditor
+            currentSection={currentSectionIndex + 1}
+            totalSections={sections.length}
+            onJumpToSection={jumpToSection}
+            isEditing={isEditingSection}
+            onStartEdit={() => setIsEditingSection(true)}
+            onCancelEdit={() => setIsEditingSection(false)}
+          />
         </div>
       </div>
 
@@ -249,17 +267,6 @@ const TikTokReader = ({ text, fileName, onReset }) => {
             </div>
           )}
         </div>
-      )}
-
-      {/* Section Jumper Modal */}
-      {showSectionJumper && (
-        <SectionJumper
-          currentSection={currentSectionIndex + 1}
-          totalSections={sections.length}
-          onJumpToSection={jumpToSection}
-          onClose={() => setShowSectionJumper(false)}
-          isDarkMode={isDarkMode}
-        />
       )}
 
       {/* Main Content */}

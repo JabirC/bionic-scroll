@@ -14,17 +14,24 @@ import {
 } from "lucide-react";
 
 const ModernFileUpload = ({ onTextExtracted, isLoading, setIsLoading }) => {
-  const [isDarkMode, setIsDarkMode] = useState(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('bioniScroll-theme') === 'dark';
+  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isClient, setIsClient] = useState(false);
+
+  // Handle hydration
+  useEffect(() => {
+    setIsClient(true);
+    const savedTheme = localStorage.getItem('bioniScroll-theme');
+    if (savedTheme) {
+      setIsDarkMode(savedTheme === 'dark');
     }
-    return false;
-  });
+  }, []);
 
   // Save theme preference
   useEffect(() => {
-    localStorage.setItem('bioniScroll-theme', isDarkMode ? 'dark' : 'light');
-  }, [isDarkMode]);
+    if (isClient) {
+      localStorage.setItem('bioniScroll-theme', isDarkMode ? 'dark' : 'light');
+    }
+  }, [isDarkMode, isClient]);
 
   const onDrop = useCallback(
     async (acceptedFiles) => {
@@ -52,6 +59,29 @@ const ModernFileUpload = ({ onTextExtracted, isLoading, setIsLoading }) => {
     },
     multiple: false,
   });
+
+  // Prevent hydration mismatch by not rendering until client
+  if (!isClient) {
+    return (
+      <div className="modern-upload light">
+        <div className="upload-container">
+          <div className="upload-header">
+            <div className="logo">
+              <Sparkles className="logo-icon" />
+              <h1>BioniScroll</h1>
+            </div>
+            <p className="tagline">Transform PDFs into speed-reading experiences</p>
+          </div>
+          <div className="upload-area">
+            <div className="loading-content">
+              <Loader2 className="loading-icon" />
+              <h3>Loading...</h3>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={`modern-upload ${isDarkMode ? 'dark' : 'light'}`}>

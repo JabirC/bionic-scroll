@@ -34,7 +34,7 @@ body {
   color: var(--text-light);
 }
 
-/* Modern Upload - Improved Design */
+/* Modern Upload - Fixed Alignment */
 .modern-upload {
   min-height: 100vh;
   display: flex;
@@ -179,11 +179,27 @@ body {
   background: rgba(37, 99, 235, 0.05);
 }
 
+.upload-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.upload-icon-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 1.5rem;
+}
+
 .upload-icon {
   width: 64px;
   height: 64px;
   color: var(--primary);
-  margin-bottom: 1.5rem;
+}
+
+.upload-text {
+  text-align: center;
 }
 
 .upload-content h3 {
@@ -210,6 +226,12 @@ body {
 .upload-specs {
   font-size: 0.875rem;
   color: #9ca3af;
+}
+
+.loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .loading-icon {
@@ -271,11 +293,48 @@ body {
   opacity: 0;
 }
 
-/* Control Panel - Unified Design */
-.control-panel {
+/* UI Toggle Button - Outside the control panel */
+.ui-toggle-btn {
   position: fixed;
   top: 1.5rem;
   right: 1.5rem;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  background: white;
+  color: #374151;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+  z-index: 1001;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.tiktok-reader.dark .ui-toggle-btn {
+  background: var(--surface-dark);
+  color: #f1f5f9;
+  border-color: var(--border-dark);
+}
+
+.ui-toggle-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.ui-toggle-btn.ui-hidden {
+  background: var(--primary);
+  color: white;
+  border-color: var(--primary);
+}
+
+/* Control Panel - Positioned next to UI toggle */
+.control-panel {
+  position: fixed;
+  top: 1.5rem;
+  right: 5.5rem;
   display: flex;
   align-items: stretch;
   background: white;
@@ -340,6 +399,24 @@ body {
   color: white;
 }
 
+/* Custom Bionic Icon */
+.bionic-icon {
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  letter-spacing: -0.5px;
+}
+
+.bionic-b {
+  font-weight: 800;
+}
+
+.bionic-r {
+  font-weight: 400;
+}
+
+/* Section Info and Inline Editor */
 .section-info {
   display: flex;
   align-items: center;
@@ -373,6 +450,59 @@ body {
 
 .tiktok-reader.dark .section-counter:hover {
   background: rgba(255, 255, 255, 0.05);
+}
+
+/* Inline Section Editor */
+.section-editor-form {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.section-editor-input {
+  width: 3rem;
+  padding: 0.25rem 0.5rem;
+  border: 1px solid var(--border-light);
+  border-radius: 4px;
+  background: white;
+  color: var(--text-light);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: center;
+  transition: all 0.2s ease;
+}
+
+.tiktok-reader.dark .section-editor-input {
+  background: var(--bg-dark);
+  border-color: var(--border-dark);
+  color: var(--text-dark);
+}
+
+.section-editor-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.1);
+}
+
+.section-editor-input.shake {
+  animation: shake 0.5s ease;
+  border-color: #ef4444;
+}
+
+.section-total {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #6b7280;
+}
+
+.tiktok-reader.dark .section-total {
+  color: #9ca3af;
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-2px); }
+  75% { transform: translateX(2px); }
 }
 
 /* Navigation Indicators - Smart Display */
@@ -433,223 +563,6 @@ body {
 @keyframes bounce-vertical-down {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(4px); }
-}
-
-/* Section Jumper Modal */
-.section-jumper-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(4px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2000;
-  animation: fadeIn 0.2s ease;
-}
-
-.section-jumper-overlay.dark {
-  background: rgba(0, 0, 0, 0.7);
-}
-
-.section-jumper-modal {
-  background: white;
-  border-radius: 16px;
-  padding: 2rem;
-  min-width: 320px;
-  max-width: 90vw;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
-  animation: slideUp 0.2s ease;
-}
-
-.section-jumper-overlay.dark .section-jumper-modal {
-  background: var(--surface-dark);
-  color: var(--text-dark);
-}
-
-.section-jumper-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 1.5rem;
-}
-
-.section-jumper-header h3 {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--text-light);
-}
-
-.section-jumper-overlay.dark .section-jumper-header h3 {
-  color: var(--text-dark);
-}
-
-.close-btn {
-  width: 32px;
-  height: 32px;
-  border: none;
-  background: rgba(0, 0, 0, 0.05);
-  border-radius: 8px;
-  color: #6b7280;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-}
-
-.section-jumper-overlay.dark .close-btn {
-  background: rgba(255, 255, 255, 0.05);
-  color: #9ca3af;
-}
-
-.close-btn:hover {
-  background: rgba(0, 0, 0, 0.1);
-}
-
-.section-jumper-overlay.dark .close-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.section-jumper-form {
-  margin-bottom: 1.5rem;
-}
-
-.input-group {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
-}
-
-.section-input {
-  flex: 1;
-  padding: 0.75rem 1rem;
-  border: 2px solid var(--border-light);
-  border-radius: 8px;
-  background: white;
-  color: var(--text-light);
-  font-size: 1rem;
-  font-weight: 600;
-  text-align: center;
-  transition: all 0.2s ease;
-}
-
-.section-jumper-overlay.dark .section-input {
-  background: var(--bg-dark);
-  border-color: var(--border-dark);
-  color: var(--text-dark);
-}
-
-.section-input:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
-}
-
-.section-input.shake {
-  animation: shake 0.5s ease;
-  border-color: #ef4444;
-}
-
-@keyframes shake {
-  0%, 100% { transform: translateX(0); }
-  25% { transform: translateX(-4px); }
-  75% { transform: translateX(4px); }
-}
-
-.input-range {
-  color: #6b7280;
-  font-size: 0.875rem;
-}
-
-.section-jumper-overlay.dark .input-range {
-  color: #9ca3af;
-}
-
-.button-group {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.cancel-btn, .jump-btn {
-  padding: 0.75rem 1.5rem;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.875rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.cancel-btn {
-  background: rgba(0, 0, 0, 0.05);
-  color: #6b7280;
-  flex: 1;
-}
-
-.section-jumper-overlay.dark .cancel-btn {
-  background: rgba(255, 255, 255, 0.05);
-  color: #9ca3af;
-}
-
-.cancel-btn:hover {
-  background: rgba(0, 0, 0, 0.1);
-}
-
-.section-jumper-overlay.dark .cancel-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-}
-
-.jump-btn {
-  background: var(--primary);
-  color: white;
-  flex: 1;
-}
-
-.jump-btn:hover {
-  background: var(--primary-dark);
-}
-
-.shortcuts {
-  display: flex;
-  gap: 1rem;
-  justify-content: center;
-  padding-top: 1rem;
-  border-top: 1px solid var(--border-light);
-}
-
-.section-jumper-overlay.dark .shortcuts {
-  border-color: var(--border-dark);
-}
-
-.shortcut {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.75rem;
-  color: #6b7280;
-}
-
-.section-jumper-overlay.dark .shortcut {
-  color: #9ca3af;
-}
-
-kbd {
-  background: rgba(0, 0, 0, 0.05);
-  padding: 0.125rem 0.375rem;
-  border-radius: 4px;
-  font-size: 0.7rem;
-  font-family: monospace;
-  border: 1px solid rgba(0, 0, 0, 0.1);
-}
-
-.section-jumper-overlay.dark kbd {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.1);
 }
 
 /* Content Wrapper */
@@ -756,16 +669,6 @@ kbd {
   100% { transform: rotate(360deg); }
 }
 
-@keyframes fadeIn {
-  0% { opacity: 0; }
-  100% { opacity: 1; }
-}
-
-@keyframes slideUp {
-  0% { transform: translateY(20px); opacity: 0; }
-  100% { transform: translateY(0); opacity: 1; }
-}
-
 /* Responsive Design */
 @media (max-width: 768px) {
   :root {
@@ -784,7 +687,14 @@ kbd {
   
   .control-panel {
     top: 1rem;
+    right: 4rem;
+  }
+
+  .ui-toggle-btn {
+    top: 1rem;
     right: 1rem;
+    width: 40px;
+    height: 40px;
   }
 
   .control-btn {
@@ -824,7 +734,7 @@ kbd {
 
 /* Touch-friendly mobile adjustments */
 @media (hover: none) and (pointer: coarse) {
-  .control-btn {
+  .control-btn, .ui-toggle-btn {
     width: 48px;
     height: 48px;
   }
