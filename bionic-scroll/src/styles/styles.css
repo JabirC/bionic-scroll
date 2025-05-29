@@ -1,0 +1,37 @@
+.App {
+    font-family: sans-serif;
+    text-align: center;
+  }
+  
+  /* Custom styles for bionic reading */
+  .bionic-text {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen,
+      Ubuntu, Cantarell, sans-serif;
+  }
+  
+  .bionic-word strong {
+    font-weight: 700;
+  }
+  
+  /* Smooth scrolling */
+  * {
+    scroll-behavior: smooth;
+  }
+  
+  /* Custom scrollbar for the reader */
+  .overflow-y-auto::-webkit-scrollbar {
+    width: 10px;
+  }
+  
+  .overflow-y-auto::-webkit-scrollbar-track {
+    background: #f3f4f6;
+  }
+  
+  .overflow-y-auto::-webkit-scrollbar-thumb {
+    background: #d1d5db;
+    border-radius: 5px;
+  }
+  
+  .overflow-y-auto::-webkit-scrollbar-thumb:hover {
+    background: #9ca3af;
+  }
