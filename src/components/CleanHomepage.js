@@ -22,6 +22,7 @@ const CleanHomepage = ({ onTextExtracted, isLoading, setIsLoading }) => {
   const [library, setLibrary] = useState([]);
   const [isInitialized, setIsInitialized] = useState(false);
   const [uploadError, setUploadError] = useState('');
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const fileLibrary = new FileLibrary();
 
   useEffect(() => {
@@ -54,10 +55,11 @@ const CleanHomepage = ({ onTextExtracted, isLoading, setIsLoading }) => {
         metadata
       }, text);
       
-      // Smooth transition to reader
-      setTimeout(() => {
+      // Immediate transition to reader with smooth animation
+      setIsTransitioning(true);
+      requestAnimationFrame(() => {
         onTextExtracted(text, fileInfo.name, fileId);
-      }, 200);
+      });
       loadLibrary();
     } catch (error) {
       console.error('Error saving file:', error);
@@ -66,14 +68,15 @@ const CleanHomepage = ({ onTextExtracted, isLoading, setIsLoading }) => {
   };
 
   const handleLibraryFileOpen = (fileId) => {
+    if (isTransitioning) return; // Prevent multiple clicks
+    
     const file = fileLibrary.getFile(fileId);
     const text = fileLibrary.getText(fileId);
     
     if (file && text) {
-      // Smooth transition to reader
-      setTimeout(() => {
-        onTextExtracted(text, file.name, fileId);
-      }, 200);
+      // Immediate transition - no delay
+      setIsTransitioning(true);
+      onTextExtracted(text, file.name, fileId);
     }
   };
 
@@ -140,7 +143,7 @@ const CleanHomepage = ({ onTextExtracted, isLoading, setIsLoading }) => {
   }
 
   return (
-    <div className={`homepage-container ${isDarkMode ? 'dark' : 'light'}`}>
+    <div className={`homepage-container ${isDarkMode ? 'dark' : 'light'} ${isTransitioning ? 'transitioning' : ''}`}>
       {/* Header */}
       <nav className="top-nav">
         <div className="nav-brand">
@@ -179,6 +182,7 @@ const CleanHomepage = ({ onTextExtracted, isLoading, setIsLoading }) => {
             library={library}
             onFileOpen={handleLibraryFileOpen}
             onFileDelete={handleFileDelete}
+            isTransitioning={isTransitioning}
           />
         ) : (
           <UploadZone
@@ -272,7 +276,7 @@ const UploadZone = ({ onDrop, onFileSelect, isLoading, error, onClearError }) =>
 };
 
 // Library Grid Component
-const LibraryGrid = ({ library, onFileOpen, onFileDelete }) => {
+const LibraryGrid = ({ library, onFileOpen, onFileDelete, isTransitioning }) => {
   const formatRelativeTime = (dateString) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -291,52 +295,57 @@ const LibraryGrid = ({ library, onFileOpen, onFileDelete }) => {
         <span className="count">{library.length}</span>
       </div>
 
-      <div className="books">
-        {library.map((file) => (
-          <div key={file.id} className="book-row">
-            <div 
-              className="book-main"
-              onClick={() => onFileOpen(file.id)}
-            >
-              <div className="book-indicator">
-                <div className="indicator-dot" />
-                {file.readingPosition && file.readingPosition.percentage > 0 && (
-                  <div 
-                    className="progress-arc"
-                    style={{ 
-                      background: `conic-gradient(#2563eb 0deg ${file.readingPosition.percentage * 3.6}deg, transparent ${file.readingPosition.percentage * 3.6}deg 360deg)` 
-                    }}
-                  />
-                )}
-              </div>
-              
-              <div className="book-info">
-                <div className="book-title">
-                  {file.name.replace(/\.(pdf|epub)$/i, '')}
-                </div>
-                <div className="book-time">
-                  {formatRelativeTime(file.lastRead || file.dateAdded)}
+      <div className="books-container">
+        <div className="books">
+          {library.map((file) => (
+            <div key={file.id} className={`book-row ${isTransitioning ? 'disabled' : ''}`}>
+              <div 
+                className="book-main"
+                onClick={() => !isTransitioning && onFileOpen(file.id)}
+              >
+                <div className="book-indicator">
+                  <div className="indicator-dot" />
                   {file.readingPosition && file.readingPosition.percentage > 0 && (
-                    <span className="progress-text">
-                      • {Math.round(file.readingPosition.percentage)}% read
-                    </span>
+                    <div 
+                      className="progress-arc"
+                      style={{ 
+                        background: `conic-gradient(#2563eb 0deg ${file.readingPosition.percentage * 3.6}deg, transparent ${file.readingPosition.percentage * 3.6}deg 360deg)` 
+                      }}
+                    />
                   )}
                 </div>
+                
+                <div className="book-info">
+                  <div className="book-title">
+                    {file.name.replace(/\.(pdf|epub)$/i, '')}
+                  </div>
+                  <div className="book-time">
+                    {formatRelativeTime(file.lastRead || file.dateAdded)}
+                    {file.readingPosition && file.readingPosition.percentage > 0 && (
+                      <span className="progress-text">
+                        • {Math.round(file.readingPosition.percentage)}% read
+                      </span>
+                    )}
+                  </div>
+                </div>
               </div>
+              
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  if (!isTransitioning) {
+                    onFileDelete(file.id);
+                  }
+                }}
+                className="delete-button"
+                title="Delete file"
+                disabled={isTransitioning}
+              >
+                <Trash2 size={18} />
+              </button>
             </div>
-            
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onFileDelete(file.id);
-              }}
-              className="delete-button"
-              title="Delete file"
-            >
-              <Trash2 size={18} />
-            </button>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );

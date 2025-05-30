@@ -1,10 +1,11 @@
 // src/components/ScrollHint.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ChevronDown } from 'lucide-react';
 
 const ScrollHint = ({ currentSectionIndex, totalSections, isDarkMode }) => {
   const [isVisible, setIsVisible] = useState(false);
   const [showCount, setShowCount] = useState(0);
+  const hintRef = useRef(null);
 
   useEffect(() => {
     // Show hint whenever user is on first section, but limit frequency
@@ -31,12 +32,25 @@ const ScrollHint = ({ currentSectionIndex, totalSections, isDarkMode }) => {
 
   useEffect(() => {
     if (isVisible) {
-      // Auto hide after 4 seconds
+      // Add visible class after state is set
       const timer = setTimeout(() => {
-        setIsVisible(false);
+        if (hintRef.current) {
+          hintRef.current.classList.add('visible');
+        }
+      }, 50);
+
+      // Auto hide after 4 seconds
+      const hideTimer = setTimeout(() => {
+        if (hintRef.current) {
+          hintRef.current.classList.remove('visible');
+        }
+        setTimeout(() => setIsVisible(false), 500); // Wait for transition
       }, 4000);
 
-      return () => clearTimeout(timer);
+      return () => {
+        clearTimeout(timer);
+        clearTimeout(hideTimer);
+      };
     }
   }, [isVisible, showCount]);
 
@@ -45,7 +59,7 @@ const ScrollHint = ({ currentSectionIndex, totalSections, isDarkMode }) => {
   }
 
   return (
-    <div className={`scroll-hint ${isDarkMode ? 'dark' : 'light'}`}>
+    <div ref={hintRef} className={`scroll-hint ${isDarkMode ? 'dark' : 'light'}`}>
       <div className="scroll-hint-content">
         <span className="scroll-hint-text">Scroll to continue reading</span>
         <ChevronDown size={20} className="scroll-hint-icon" />

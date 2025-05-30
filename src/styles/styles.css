@@ -50,7 +50,7 @@ body {
   display: flex;
   flex-direction: column;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   position: relative;
   overflow: hidden;
 }
@@ -68,6 +68,11 @@ body {
 .homepage-container.loading {
   align-items: center;
   justify-content: center;
+}
+
+.homepage-container.transitioning {
+  pointer-events: none;
+  opacity: 0.9;
 }
 
 .loading-container {
@@ -199,7 +204,7 @@ body {
   padding: 0 32px 32px;
   min-height: 0;
   overflow: hidden;
-  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .main-content.library-view {
@@ -412,6 +417,7 @@ body {
   gap: 12px;
   margin-bottom: 32px;
   padding: 0 16px;
+  flex-shrink: 0;
 }
 
 .grid-header h2 {
@@ -437,20 +443,51 @@ body {
   color: #9ca3af;
 }
 
-.books {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
+.books-container {
   flex: 1;
   min-height: 0;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.books {
+  flex: 1;
   overflow-y: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  overflow-x: hidden;
   padding: 0 16px;
+  margin: 0 -16px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(156, 163, 175, 0.3) transparent;
 }
 
 .books::-webkit-scrollbar {
-  display: none;
+  width: 6px;
+}
+
+.books::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.books::-webkit-scrollbar-thumb {
+  background: rgba(156, 163, 175, 0.3);
+  border-radius: 3px;
+}
+
+.books::-webkit-scrollbar-thumb:hover {
+  background: rgba(156, 163, 175, 0.5);
+}
+
+.homepage-container.dark .books {
+  scrollbar-color: rgba(71, 85, 105, 0.5) transparent;
+}
+
+.homepage-container.dark .books::-webkit-scrollbar-thumb {
+  background: rgba(71, 85, 105, 0.5);
+}
+
+.homepage-container.dark .books::-webkit-scrollbar-thumb:hover {
+  background: rgba(71, 85, 105, 0.7);
 }
 
 .book-row {
@@ -463,16 +500,21 @@ body {
   border-radius: 12px;
   position: relative;
   overflow: hidden;
-  margin: 0 -16px;
+  margin: 0 0 2px 0;
 }
 
-.book-row:hover {
+.book-row:hover:not(.disabled) {
   background: rgba(0, 0, 0, 0.02);
   transform: translateY(-1px);
 }
 
-.homepage-container.dark .book-row:hover {
+.homepage-container.dark .book-row:hover:not(.disabled) {
   background: rgba(255, 255, 255, 0.03);
+}
+
+.book-row.disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .book-main {
@@ -482,6 +524,10 @@ body {
   flex: 1;
   cursor: pointer;
   min-width: 0;
+}
+
+.book-row.disabled .book-main {
+  cursor: not-allowed;
 }
 
 .book-indicator {
@@ -499,7 +545,7 @@ body {
   transition: all 0.2s ease;
 }
 
-.book-row:hover .indicator-dot {
+.book-row:hover:not(.disabled) .indicator-dot {
   background: #d1d5db; /* Keep grey even on hover */
 }
 
@@ -538,7 +584,7 @@ body {
 }
 
 .progress-text {
-  color: var(--primary); /* Changed to blue */
+  color: var(--primary); /* Blue progress text */
   font-weight: 500;
 }
 
@@ -558,17 +604,22 @@ body {
   flex-shrink: 0;
 }
 
-.book-row:hover .delete-button {
+.delete-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.3;
+}
+
+.book-row:hover .delete-button:not(:disabled) {
   opacity: 1;
 }
 
-.delete-button:hover {
+.delete-button:hover:not(:disabled) {
   background: #fef2f2;
   color: var(--danger);
   transform: scale(1.1);
 }
 
-.homepage-container.dark .delete-button:hover {
+.homepage-container.dark .delete-button:hover:not(:disabled) {
   background: #431c1c;
   color: #f87171;
 }
@@ -581,7 +632,7 @@ body {
     background: rgba(220, 38, 38, 0.1);
   }
   
-  .delete-button:active {
+  .delete-button:active:not(:disabled) {
     background: rgba(220, 38, 38, 0.2);
     transform: scale(0.95);
   }
@@ -602,7 +653,7 @@ body {
   transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   font-family: 'Inter', sans-serif;
   opacity: 0;
-  animation: fadeInReader 0.6s ease forwards;
+  animation: fadeInReader 0.4s ease forwards;
 }
 
 .reader-container.light {
@@ -1046,16 +1097,26 @@ body {
   color: var(--bionic-normal-dark);
 }
 
-/* Scroll Hint - Updated Layout */
+/* Scroll Hint - Fixed Jump Issue */
 .scroll-hint {
   position: fixed;
   bottom: 6rem;
   left: 50%;
-  transform: translateX(-50%);
   z-index: 900;
-  animation: fadeInUp 0.5s ease, fadeOut 0.5s ease 4.5s forwards;
   pointer-events: none;
+  /* Fixed initial position to prevent jump */
+  transform: translateX(-50%) translateY(20px);
+  opacity: 0;
+  transition: all 0.5s ease;
 }
+
+.scroll-hint.visible {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* Remove the fadeInUp and fadeOut animations since they cause the jump */
+/* Use a simpler show/hide with CSS transitions */
 
 .scroll-hint-content {
   display: flex;
@@ -1167,7 +1228,7 @@ body {
 @keyframes fadeInReader {
   0% {
     opacity: 0;
-    transform: scale(0.95);
+    transform: scale(0.98);
   }
   100% {
     opacity: 1;
@@ -1183,17 +1244,6 @@ body {
   100% {
     opacity: 1;
     transform: translateY(0);
-  }
-}
-
-@keyframes fadeOut {
-  0% {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
-  100% {
-    opacity: 0;
-    transform: translateX(-50%) translateY(20px);
   }
 }
 
@@ -1290,11 +1340,11 @@ body {
 
   .books {
     padding: 0 8px;
+    margin: 0 -8px;
   }
 
   .book-row {
     padding: 16px 16px;
-    margin: 0 -8px;
   }
 
   .book-main {
@@ -1401,11 +1451,11 @@ body {
   /* Library */
   .books {
     padding: 0 4px;
+    margin: 0 -4px;
   }
 
   .book-row {
     padding: 14px 12px;
-    margin: 0 -4px;
   }
 
   .book-indicator {
@@ -1520,5 +1570,12 @@ body {
   .font-controls {
     flex-direction: column;
     gap: 0.25rem;
+  }
+}
+
+/* High resolution screens */
+@media (min-height: 800px) {
+  .books-container {
+    max-height: none;
   }
 }
