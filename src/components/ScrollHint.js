@@ -10,7 +10,7 @@ const ScrollHint = ({ currentSectionIndex, totalSections, isDarkMode }) => {
     // Show hint whenever user is on first section, but limit frequency
     if (currentSectionIndex === 0 && totalSections > 1) {
       // Check if we've shown the hint too many times recently
-      const lastShown = localStorage.getItem('bioniScroll-hint-last-shown');
+      const lastShown = localStorage.getItem('readFaster-hint-last-shown');
       const now = Date.now();
       
       if (!lastShown || now - parseInt(lastShown) > 300000) { // 5 minutes
@@ -18,7 +18,7 @@ const ScrollHint = ({ currentSectionIndex, totalSections, isDarkMode }) => {
         const timer = setTimeout(() => {
           setIsVisible(true);
           setShowCount(prev => prev + 1);
-          localStorage.setItem('bioniScroll-hint-last-shown', now.toString());
+          localStorage.setItem('readFaster-hint-last-shown', now.toString());
         }, 1500);
 
         return () => clearTimeout(timer);
@@ -47,8 +47,8 @@ const ScrollHint = ({ currentSectionIndex, totalSections, isDarkMode }) => {
   return (
     <div className={`scroll-hint ${isDarkMode ? 'dark' : 'light'}`}>
       <div className="scroll-hint-content">
-        <ChevronDown size={20} className="scroll-hint-icon" />
         <span className="scroll-hint-text">Scroll to continue reading</span>
+        <ChevronDown size={20} className="scroll-hint-icon" />
       </div>
     </div>
   );

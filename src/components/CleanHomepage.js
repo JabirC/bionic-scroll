@@ -11,7 +11,8 @@ import {
   Loader2,
   Plus,
   Trash2,
-  Zap
+  Zap,
+  AlertCircle
 } from 'lucide-react';
 
 const CleanHomepage = ({ onTextExtracted, isLoading, setIsLoading }) => {
@@ -20,11 +21,12 @@ const CleanHomepage = ({ onTextExtracted, isLoading, setIsLoading }) => {
   const [isClient, setIsClient] = useState(false);
   const [library, setLibrary] = useState([]);
   const [isInitialized, setIsInitialized] = useState(false);
+  const [uploadError, setUploadError] = useState('');
   const fileLibrary = new FileLibrary();
 
   useEffect(() => {
     setIsClient(true);
-    const savedTheme = localStorage.getItem('omniReader-theme');
+    const savedTheme = localStorage.getItem('readFaster-theme');
     if (savedTheme) {
       setIsDarkMode(savedTheme === 'dark');
     }
@@ -34,7 +36,7 @@ const CleanHomepage = ({ onTextExtracted, isLoading, setIsLoading }) => {
 
   useEffect(() => {
     if (isClient) {
-      localStorage.setItem('omniReader-theme', isDarkMode ? 'dark' : 'light');
+      localStorage.setItem('readFaster-theme', isDarkMode ? 'dark' : 'light');
     }
   }, [isDarkMode, isClient]);
 
@@ -52,7 +54,10 @@ const CleanHomepage = ({ onTextExtracted, isLoading, setIsLoading }) => {
         metadata
       }, text);
       
-      onTextExtracted(text, fileInfo.name, fileId);
+      // Smooth transition to reader
+      setTimeout(() => {
+        onTextExtracted(text, fileInfo.name, fileId);
+      }, 200);
       loadLibrary();
     } catch (error) {
       console.error('Error saving file:', error);
@@ -65,7 +70,10 @@ const CleanHomepage = ({ onTextExtracted, isLoading, setIsLoading }) => {
     const text = fileLibrary.getText(fileId);
     
     if (file && text) {
-      onTextExtracted(text, file.name, fileId);
+      // Smooth transition to reader
+      setTimeout(() => {
+        onTextExtracted(text, file.name, fileId);
+      }, 200);
     }
   };
 
@@ -89,10 +97,14 @@ const CleanHomepage = ({ onTextExtracted, isLoading, setIsLoading }) => {
     if (file) {
       await processFile(file);
     }
+    // Reset input
+    e.target.value = '';
   };
 
   const processFile = async (file) => {
     setIsLoading(true);
+    setUploadError('');
+    
     try {
       const formData = new FormData();
       formData.append('file', file);
@@ -111,7 +123,7 @@ const CleanHomepage = ({ onTextExtracted, isLoading, setIsLoading }) => {
       handleFileProcessed(result.text, file, result.metadata);
     } catch (error) {
       console.error('Error processing file:', error);
-      alert(error.message || 'Error processing file. Please try another file.');
+      setUploadError(error.message || 'Error processing file. Please try another file.');
     } finally {
       setIsLoading(false);
     }
@@ -119,7 +131,7 @@ const CleanHomepage = ({ onTextExtracted, isLoading, setIsLoading }) => {
 
   if (!isClient || !isInitialized) {
     return (
-      <div className="minimal-homepage loading">
+      <div className="homepage-container loading">
         <div className="loading-container">
           <Loader2 size={24} className="animate-spin" />
         </div>
@@ -128,13 +140,13 @@ const CleanHomepage = ({ onTextExtracted, isLoading, setIsLoading }) => {
   }
 
   return (
-    <div className={`minimal-homepage ${isDarkMode ? 'dark' : 'light'}`}>
+    <div className={`homepage-container ${isDarkMode ? 'dark' : 'light'}`}>
       {/* Header */}
       <nav className="top-nav">
         <div className="nav-brand">
           <div className="brand-logo">
             <Zap className="brand-icon" size={24} />
-            <span className="brand-text">Omni Reader</span>
+            <span className="brand-text">Read Faster</span>
             <div className="brand-accent"></div>
           </div>
         </div>
@@ -173,6 +185,8 @@ const CleanHomepage = ({ onTextExtracted, isLoading, setIsLoading }) => {
             onDrop={handleDrop}
             onFileSelect={handleFileSelect}
             isLoading={isLoading}
+            error={uploadError}
+            onClearError={() => setUploadError('')}
           />
         )}
       </main>
@@ -181,7 +195,7 @@ const CleanHomepage = ({ onTextExtracted, isLoading, setIsLoading }) => {
 };
 
 // Upload Zone Component
-const UploadZone = ({ onDrop, onFileSelect, isLoading }) => {
+const UploadZone = ({ onDrop, onFileSelect, isLoading, error, onClearError }) => {
   const [isDragOver, setIsDragOver] = useState(false);
 
   const handleDragOver = (e) => {
@@ -200,6 +214,13 @@ const UploadZone = ({ onDrop, onFileSelect, isLoading }) => {
     onDrop(e);
   };
 
+  const handleClick = () => {
+    if (!isLoading) {
+      onClearError();
+      document.getElementById('file-input').click();
+    }
+  };
+
   return (
     <div className="upload-zone">
       <div className="upload-header">
@@ -207,12 +228,20 @@ const UploadZone = ({ onDrop, onFileSelect, isLoading }) => {
         <p>Upload PDF or EPUB files for enhanced reading</p>
       </div>
 
+      {error && (
+        <div className="error-message">
+          <AlertCircle size={20} />
+          <span>{error}</span>
+          <button onClick={onClearError} className="error-dismiss">×</button>
+        </div>
+      )}
+
       <div
-        className={`drop-area ${isDragOver ? 'drag-active' : ''} ${isLoading ? 'processing' : ''}`}
+        className={`drop-area ${isDragOver ? 'drag-active' : ''} ${isLoading ? 'processing' : ''} ${error ? 'error' : ''}`}
         onDrop={handleDropInternal}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
-        onClick={() => !isLoading && document.getElementById('file-input').click()}
+        onClick={handleClick}
       >
         <input
           id="file-input"
@@ -275,7 +304,7 @@ const LibraryGrid = ({ library, onFileOpen, onFileDelete }) => {
                   <div 
                     className="progress-arc"
                     style={{ 
-                      background: `conic-gradient(#059669 0deg ${file.readingPosition.percentage * 3.6}deg, transparent ${file.readingPosition.percentage * 3.6}deg 360deg)` 
+                      background: `conic-gradient(#2563eb 0deg ${file.readingPosition.percentage * 3.6}deg, transparent ${file.readingPosition.percentage * 3.6}deg 360deg)` 
                     }}
                   />
                 )}

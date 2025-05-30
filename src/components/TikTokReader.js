@@ -1,6 +1,6 @@
 // src/components/TikTokReader.js
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Home, Sun, Moon, EyeOff, Eye, Minus, Plus } from "lucide-react";
+import { Home, Sun, Moon, EyeOff, Eye } from "lucide-react";
 import { TextProcessor } from "../utils/textProcessor";
 import { FileLibrary } from "../utils/fileLibrary";
 import BionicIcon from "./BionicIcon";
@@ -16,8 +16,7 @@ const TikTokReader = ({ text, fileName, onReset, fileId }) => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isEditingSection, setIsEditingSection] = useState(false);
   const [isClient, setIsClient] = useState(false);
-  const [fontSize, setFontSize] = useState(22);
-  const [showFontControls, setShowFontControls] = useState(false);
+  const [fontSizeIndex, setFontSizeIndex] = useState(1); // Default to medium (index 1)
   
   const containerRef = useRef(null);
   const textProcessor = useRef(new TextProcessor()).current;
@@ -29,37 +28,38 @@ const TikTokReader = ({ text, fileName, onReset, fileId }) => {
   const touchStartTime = useRef(0);
   const isScrolling = useRef(false);
 
-  const MIN_FONT_SIZE = 14;
-  const MAX_FONT_SIZE = 32;
+  // Three font sizes: small, medium, large
+  const FONT_SIZES = [18, 22, 26];
+  const FONT_SIZE_LABELS = ['Small', 'Medium', 'Large'];
 
   // Handle hydration and theme
   useEffect(() => {
     setIsClient(true);
-    const savedTheme = localStorage.getItem('omniReader-theme');
-    const savedFontSize = localStorage.getItem('omniReader-fontSize');
+    const savedTheme = localStorage.getItem('readFaster-theme');
+    const savedFontSize = localStorage.getItem('readFaster-fontSizeIndex');
     
     if (savedTheme) {
       setIsDarkMode(savedTheme === 'dark');
     }
     if (savedFontSize) {
-      const parsedSize = parseInt(savedFontSize, 10);
-      if (parsedSize >= MIN_FONT_SIZE && parsedSize <= MAX_FONT_SIZE) {
-        setFontSize(parsedSize);
+      const parsedIndex = parseInt(savedFontSize, 10);
+      if (parsedIndex >= 0 && parsedIndex < FONT_SIZES.length) {
+        setFontSizeIndex(parsedIndex);
       }
     }
   }, []);
 
   useEffect(() => {
     if (isClient) {
-      localStorage.setItem('omniReader-theme', isDarkMode ? 'dark' : 'light');
-      localStorage.setItem('omniReader-fontSize', fontSize.toString());
+      localStorage.setItem('readFaster-theme', isDarkMode ? 'dark' : 'light');
+      localStorage.setItem('readFaster-fontSizeIndex', fontSizeIndex.toString());
     }
-  }, [isDarkMode, fontSize, isClient]);
+  }, [isDarkMode, fontSizeIndex, isClient]);
 
   // Update text processor font size
   useEffect(() => {
-    textProcessor.setFontSize(fontSize);
-  }, [fontSize, textProcessor]);
+    textProcessor.setFontSize(FONT_SIZES[fontSizeIndex]);
+  }, [fontSizeIndex, textProcessor]);
 
   // Initialize sections and restore position
   useEffect(() => {
@@ -89,7 +89,7 @@ const TikTokReader = ({ text, fileName, onReset, fileId }) => {
         }
       }
     }
-  }, [text, textProcessor, fileId, fileLibrary, fontSize]);
+  }, [text, textProcessor, fileId, fileLibrary, fontSizeIndex]);
 
   // Recalculate sections on window resize or font size change
   useEffect(() => {
@@ -117,7 +117,7 @@ const TikTokReader = ({ text, fileName, onReset, fileId }) => {
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [text, textProcessor, isBionicMode, sections, currentSectionIndex, fontSize]);
+  }, [text, textProcessor, isBionicMode, sections, currentSectionIndex, fontSizeIndex]);
 
   // Re-process sections when bionic mode changes
   useEffect(() => {
@@ -251,11 +251,11 @@ const TikTokReader = ({ text, fileName, onReset, fileId }) => {
 
   // Font size controls
   const increaseFontSize = () => {
-    setFontSize(prev => Math.min(prev + 2, MAX_FONT_SIZE));
+    setFontSizeIndex(prev => Math.min(prev + 1, FONT_SIZES.length - 1));
   };
 
   const decreaseFontSize = () => {
-    setFontSize(prev => Math.max(prev - 2, MIN_FONT_SIZE));
+    setFontSizeIndex(prev => Math.max(prev - 1, 0));
   };
 
   // Keyboard navigation
@@ -281,18 +281,14 @@ const TikTokReader = ({ text, fileName, onReset, fileId }) => {
       } else if (e.key === '-' || e.key === '_') {
         e.preventDefault();
         decreaseFontSize();
-      } else if (e.key === 'f' || e.key === 'F') {
-        e.preventDefault();
-        setShowFontControls(!showFontControls);
       } else if (e.key === 'Escape') {
         setIsEditingSection(false);
-        setShowFontControls(false);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentSectionIndex, sections.length, isBionicMode, showUI, isDarkMode, isEditingSection, showFontControls]);
+  }, [currentSectionIndex, sections.length, isBionicMode, showUI, isDarkMode, isEditingSection]);
 
   // Event listeners
   useEffect(() => {
@@ -318,7 +314,7 @@ const TikTokReader = ({ text, fileName, onReset, fileId }) => {
 
   if (!isClient) {
     return (
-      <div className="tiktok-reader light">
+      <div className="reader-container light">
         <div className="loading-state">
           <div className="loading-spinner" />
           <p>Loading...</p>
@@ -328,7 +324,7 @@ const TikTokReader = ({ text, fileName, onReset, fileId }) => {
   }
 
   return (
-    <div className={`tiktok-reader ${isDarkMode ? 'dark' : 'light'}`}>
+    <div className={`reader-container ${isDarkMode ? 'dark' : 'light'}`}>
       {/* Progress Bar */}
       <div className={`progress-bar ${showUI ? 'visible' : 'hidden'}`}>
         <div 
@@ -339,7 +335,7 @@ const TikTokReader = ({ text, fileName, onReset, fileId }) => {
         />
       </div>
 
-      {/* Control Panel - Responsive Design */}
+      {/* Control Panel */}
       <div className={`control-panel ${showUI ? 'visible' : 'hidden'}`}>
         <div className="control-group">
           <button
@@ -389,37 +385,26 @@ const TikTokReader = ({ text, fileName, onReset, fileId }) => {
         </div>
       </div>
 
-      {/* Font Controls - Bottom Overlay */}
-      <div className={`font-controls ${showFontControls ? 'visible' : 'hidden'}`}>
+      {/* Font Controls - Bottom Right Corner */}
+      <div className={`font-controls ${showUI ? 'visible' : 'hidden'}`}>
         <button
           onClick={decreaseFontSize}
-          className={`font-btn ${fontSize <= MIN_FONT_SIZE ? 'disabled' : ''}`}
-          title="Decrease Font Size (-)"
-          disabled={fontSize <= MIN_FONT_SIZE}
+          className={`font-btn font-btn-small ${fontSizeIndex <= 0 ? 'disabled' : ''}`}
+          title="Decrease Font Size"
+          disabled={fontSizeIndex <= 0}
         >
-          <Minus size={18} />
+          A
         </button>
-        
-        <span className="font-size-display">{fontSize}px</span>
         
         <button
           onClick={increaseFontSize}
-          className={`font-btn ${fontSize >= MAX_FONT_SIZE ? 'disabled' : ''}`}
-          title="Increase Font Size (+)"
-          disabled={fontSize >= MAX_FONT_SIZE}
+          className={`font-btn font-btn-large ${fontSizeIndex >= FONT_SIZES.length - 1 ? 'disabled' : ''}`}
+          title="Increase Font Size"
+          disabled={fontSizeIndex >= FONT_SIZES.length - 1}
         >
-          <Plus size={18} />
+          A
         </button>
       </div>
-
-      {/* Font Controls Toggle */}
-      <button
-        className={`font-controls-toggle ${showUI && !showFontControls ? 'visible' : 'hidden'}`}
-        onClick={() => setShowFontControls(true)}
-        title="Font Size Controls (F)"
-      >
-        Aa
-      </button>
 
       <button
         className={`standalone-ui-toggle ${showUI ? 'hidden' : 'visible'}`}
@@ -447,13 +432,13 @@ const TikTokReader = ({ text, fileName, onReset, fileId }) => {
                 {currentSection.isBionic ? (
                   <div
                     className="text-content bionic-text"
-                    style={{ fontSize: `${fontSize}px` }}
+                    style={{ fontSize: `${FONT_SIZES[fontSizeIndex]}px` }}
                     dangerouslySetInnerHTML={{ __html: currentSection.processed }}
                   />
                 ) : (
                   <div 
                     className="text-content regular-text"
-                    style={{ fontSize: `${fontSize}px` }}
+                    style={{ fontSize: `${FONT_SIZES[fontSizeIndex]}px` }}
                   >
                     <div dangerouslySetInnerHTML={{ __html: currentSection.regularFormatted }} />
                   </div>

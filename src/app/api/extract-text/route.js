@@ -1,8 +1,21 @@
 // src/app/api/extract-text/route.js
 import { NextResponse } from 'next/server';
 
-const MAX_FILE_SIZE = 200 * 1024 * 1024; // Increased to 200MB
-const TIMEOUT_DURATION = 60000; // Increased to 60 seconds
+const MAX_FILE_SIZE = 200 * 1024 * 1024; // 200MB
+const TIMEOUT_DURATION = 60000; // 60 seconds
+
+// User-friendly error messages
+const ERROR_MESSAGES = {
+  NO_FILE: 'Please select a file to upload.',
+  INVALID_TYPE: 'Please upload a PDF or EPUB file only.',
+  FILE_TOO_LARGE: 'File is too large. Please upload a file smaller than 200MB.',
+  FILE_TOO_SMALL: 'The selected file appears to be invalid or corrupted.',
+  TIMEOUT: 'File processing is taking too long. This may be due to file complexity or size. Please try a smaller file.',
+  NO_TEXT: 'No readable text found in this file. The file may be image-only or corrupted.',
+  PROCESSING_ERROR: 'Unable to process this file. Please try a different file or contact support.',
+  NETWORK_ERROR: 'Network connection error. Please check your internet connection and try again.',
+  SERVER_ERROR: 'Server error occurred. Please try again in a few moments.'
+};
 
 export async function POST(request) {
   try {
@@ -11,7 +24,7 @@ export async function POST(request) {
     
     if (!file) {
       return NextResponse.json(
-        { error: 'No file provided' },
+        { error: ERROR_MESSAGES.NO_FILE },
         { status: 400 }
       );
     }
@@ -20,7 +33,7 @@ export async function POST(request) {
     const validTypes = ['application/pdf', 'application/epub+zip'];
     if (!validTypes.includes(file.type)) {
       return NextResponse.json(
-        { error: 'Invalid file type. Only PDF and EPUB files are allowed.' },
+        { error: ERROR_MESSAGES.INVALID_TYPE },
         { status: 400 }
       );
     }
@@ -28,14 +41,14 @@ export async function POST(request) {
     // Validate file size
     if (file.size > MAX_FILE_SIZE) {
       return NextResponse.json(
-        { error: 'File too large. Maximum size is 200MB.' }, // Updated message
+        { error: ERROR_MESSAGES.FILE_TOO_LARGE },
         { status: 400 }
       );
     }
 
     if (file.size < 100) {
       return NextResponse.json(
-        { error: 'File too small. Please provide a valid file.' },
+        { error: ERROR_MESSAGES.FILE_TOO_SMALL },
         { status: 400 }
       );
     }
@@ -43,53 +56,78 @@ export async function POST(request) {
     // Extract text based on file type
     let result;
     
-    if (file.type === 'application/epub+zip') {
-      // Dynamic import for EPUB extractor
-      const { EPUBExtractor } = await import('../../../utils/epubExtractor');
-      const epubExtractor = new EPUBExtractor();
-      const extractionPromise = epubExtractor.extractText(file);
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('EPUB processing timeout')), TIMEOUT_DURATION);
-      });
-      
-      result = await Promise.race([extractionPromise, timeoutPromise]);
-    } else {
-      // PDF extraction (existing code)
-      const bytes = await file.arrayBuffer();
-      const buffer = Buffer.from(bytes);
-      const extractionPromise = extractTextFromPDF(buffer);
-      const timeoutPromise = new Promise((_, reject) => {
-        setTimeout(() => reject(new Error('PDF processing timeout')), TIMEOUT_DURATION);
+    try {
+      if (file.type === 'application/epub+zip') {
+        // Dynamic import for EPUB extractor
+        const { EPUBExtractor } = await import('../../../utils/epubExtractor');
+        const epubExtractor = new EPUBExtractor();
+        const extractionPromise = epubExtractor.extractText(file);
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('EPUB_TIMEOUT')), TIMEOUT_DURATION);
+        });
+        
+        result = await Promise.race([extractionPromise, timeoutPromise]);
+      } else {
+        // PDF extraction
+        const bytes = await file.arrayBuffer();
+        const buffer = Buffer.from(bytes);
+        const extractionPromise = extractTextFromPDF(buffer);
+        const timeoutPromise = new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('PDF_TIMEOUT')), TIMEOUT_DURATION);
+        });
+
+        result = await Promise.race([extractionPromise, timeoutPromise]);
+      }
+
+      if (!result || !result.text || result.text.trim().length < 50) {
+        return NextResponse.json(
+          { error: ERROR_MESSAGES.NO_TEXT },
+          { status: 422 }
+        );
+      }
+
+      return NextResponse.json({
+        text: result.text,
+        metadata: result.metadata,
+        fileType: file.type === 'application/epub+zip' ? 'epub' : 'pdf',
+        success: true
       });
 
-      result = await Promise.race([extractionPromise, timeoutPromise]);
+    } catch (extractionError) {
+      console.error('Text extraction error:', extractionError);
+      
+      if (extractionError.message.includes('TIMEOUT')) {
+        return NextResponse.json(
+          { error: ERROR_MESSAGES.TIMEOUT },
+          { status: 408 }
+        );
+      }
+      
+      return NextResponse.json(
+        { error: ERROR_MESSAGES.PROCESSING_ERROR },
+        { status: 422 }
+      );
     }
 
-    return NextResponse.json({
-      text: result.text,
-      metadata: result.metadata,
-      fileType: file.type === 'application/epub+zip' ? 'epub' : 'pdf',
-      success: true
-    });
-
   } catch (error) {
-    console.error('Text extraction error:', error);
+    console.error('Request processing error:', error);
     
-    if (error.message.includes('timeout')) {
+    if (error.name === 'TypeError' && error.message.includes('fetch')) {
       return NextResponse.json(
-        { error: 'File processing timed out. The file may be too complex or corrupted.' },
-        { status: 408 }
+        { error: ERROR_MESSAGES.NETWORK_ERROR },
+        { status: 503 }
       );
     }
     
     return NextResponse.json(
-      { error: 'Failed to process file. Please try a different file.' },
+      { error: ERROR_MESSAGES.SERVER_ERROR },
       { status: 500 }
     );
   }
 }
 
-// Keep all existing PDF extraction functions here...
+// ... rest of the existing PDF extraction functions remain the same
+
 async function extractTextFromPDF(buffer) {
   let extractedText = '';
   let method = 'unknown';
@@ -133,7 +171,7 @@ async function extractTextFromPDF(buffer) {
     }
 
     if (!extractedText || extractedText.length < 50) {
-      throw new Error('No meaningful text content found in PDF. The file may contain only images or be corrupted.');
+      throw new Error('No meaningful text content found in PDF');
     }
 
     // Clean up the extracted text

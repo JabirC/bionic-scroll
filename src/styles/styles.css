@@ -1,4 +1,4 @@
-/* src/styles/styles.css - Complete File */
+/* src/styles/styles.css - Complete Updated File */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 :root {
@@ -41,31 +41,31 @@ body {
 }
 
 /* =============================================================================
-   MINIMAL HOMEPAGE
+   HOMEPAGE CONTAINER
    ============================================================================= */
 
-.minimal-homepage {
+.homepage-container {
   min-height: 100vh;
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  transition: background-color 0.3s ease, color 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   position: relative;
-  overflow-x: hidden;
+  overflow: hidden;
 }
 
-.minimal-homepage.light {
+.homepage-container.light {
   background: #ffffff;
   color: #000000;
 }
 
-.minimal-homepage.dark {
+.homepage-container.dark {
   background: #000000;
   color: #ffffff;
 }
 
-.minimal-homepage.loading {
+.homepage-container.loading {
   align-items: center;
   justify-content: center;
 }
@@ -90,14 +90,15 @@ body {
   border-bottom: 1px solid transparent;
   backdrop-filter: blur(10px);
   z-index: 100;
+  transition: all 0.3s ease;
 }
 
-.minimal-homepage.light .top-nav {
+.homepage-container.light .top-nav {
   border-bottom-color: #f0f0f0;
   background: rgba(255, 255, 255, 0.8);
 }
 
-.minimal-homepage.dark .top-nav {
+.homepage-container.dark .top-nav {
   border-bottom-color: #1a1a1a;
   background: rgba(0, 0, 0, 0.8);
 }
@@ -132,7 +133,7 @@ body {
   position: relative;
 }
 
-.minimal-homepage.dark .brand-text {
+.homepage-container.dark .brand-text {
   background: linear-gradient(135deg, #ffffff 0%, #60a5fa 50%, #a78bfa 100%);
   background-clip: text;
   -webkit-background-clip: text;
@@ -148,26 +149,6 @@ body {
   background: var(--primary);
   border-radius: 50%;
   animation: brand-pulse 2s ease-in-out infinite;
-}
-
-@keyframes pulse-glow {
-  0%, 100% {
-    filter: drop-shadow(0 0 8px rgba(37, 99, 235, 0.3));
-  }
-  50% {
-    filter: drop-shadow(0 0 12px rgba(37, 99, 235, 0.6));
-  }
-}
-
-@keyframes brand-pulse {
-  0%, 100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 0.7;
-    transform: scale(1.2);
-  }
 }
 
 .nav-actions {
@@ -196,11 +177,11 @@ body {
   transform: translateY(-1px);
 }
 
-.minimal-homepage.dark .nav-button {
+.homepage-container.dark .nav-button {
   color: #999999;
 }
 
-.minimal-homepage.dark .nav-button:hover {
+.homepage-container.dark .nav-button:hover {
   background: #1a1a1a;
   color: #ffffff;
 }
@@ -218,15 +199,66 @@ body {
   padding: 0 32px 32px;
   min-height: 0;
   overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
 .main-content.library-view {
   justify-content: flex-start;
   padding-top: 32px;
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .main-content.upload-view {
   justify-content: center;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* =============================================================================
+   ERROR MESSAGE
+   ============================================================================= */
+
+.error-message {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: var(--danger);
+  padding: 12px 16px;
+  border-radius: 12px;
+  margin-bottom: 24px;
+  width: 100%;
+  max-width: 480px;
+  animation: slideDown 0.3s ease;
+}
+
+.homepage-container.dark .error-message {
+  background: #431c1c;
+  border-color: #7f1d1d;
+  color: #f87171;
+}
+
+.error-dismiss {
+  background: none;
+  border: none;
+  color: var(--danger);
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: bold;
+  padding: 0 4px;
+  margin-left: auto;
+  opacity: 0.7;
+  transition: opacity 0.2s ease;
+}
+
+.error-dismiss:hover {
+  opacity: 1;
+}
+
+.homepage-container.dark .error-dismiss {
+  color: #f87171;
 }
 
 /* =============================================================================
@@ -237,7 +269,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 64px;
+  gap: 48px;
   max-width: 480px;
   width: 100%;
   animation: fadeInUp 0.6s ease;
@@ -259,7 +291,7 @@ body {
   -webkit-text-fill-color: transparent;
 }
 
-.minimal-homepage.dark .upload-header h1 {
+.homepage-container.dark .upload-header h1 {
   background: linear-gradient(135deg, #f3f4f6 0%, #60a5fa 100%);
   background-clip: text;
   -webkit-background-clip: text;
@@ -295,12 +327,12 @@ body {
   box-shadow: 0 8px 25px rgba(37, 99, 235, 0.1);
 }
 
-.minimal-homepage.dark .drop-area {
+.homepage-container.dark .drop-area {
   border-color: #374151;
   background: rgba(30, 41, 59, 0.5);
 }
 
-.minimal-homepage.dark .drop-area:hover:not(.processing) {
+.homepage-container.dark .drop-area:hover:not(.processing) {
   border-color: var(--primary);
   background: rgba(37, 99, 235, 0.1);
 }
@@ -315,6 +347,11 @@ body {
   border-color: #9ca3af;
   cursor: default;
   opacity: 0.8;
+}
+
+.drop-area.error {
+  border-color: var(--danger);
+  background: rgba(220, 38, 38, 0.05);
 }
 
 .drop-content {
@@ -341,7 +378,7 @@ body {
   color: #111827;
 }
 
-.minimal-homepage.dark .drop-content .status {
+.homepage-container.dark .drop-content .status {
   color: #f9fafb;
 }
 
@@ -374,7 +411,7 @@ body {
   align-items: center;
   gap: 12px;
   margin-bottom: 32px;
-  padding: 0 4px;
+  padding: 0 16px;
 }
 
 .grid-header h2 {
@@ -395,7 +432,7 @@ body {
   text-align: center;
 }
 
-.minimal-homepage.dark .grid-header .count {
+.homepage-container.dark .grid-header .count {
   background: #374151;
   color: #9ca3af;
 }
@@ -409,6 +446,7 @@ body {
   overflow-y: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
+  padding: 0 16px;
 }
 
 .books::-webkit-scrollbar {
@@ -419,12 +457,13 @@ body {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 18px 8px;
+  padding: 18px 16px;
   cursor: pointer;
   transition: all 0.2s ease;
   border-radius: 12px;
   position: relative;
   overflow: hidden;
+  margin: 0 -16px;
 }
 
 .book-row:hover {
@@ -432,7 +471,7 @@ body {
   transform: translateY(-1px);
 }
 
-.minimal-homepage.dark .book-row:hover {
+.homepage-container.dark .book-row:hover {
   background: rgba(255, 255, 255, 0.03);
 }
 
@@ -450,7 +489,6 @@ body {
   width: 12px;
   height: 12px;
   flex-shrink: 0;
-  margin-left: 4px;
 }
 
 .indicator-dot {
@@ -462,7 +500,7 @@ body {
 }
 
 .book-row:hover .indicator-dot {
-  background: var(--primary);
+  background: #d1d5db; /* Keep grey even on hover */
 }
 
 .progress-arc {
@@ -500,7 +538,7 @@ body {
 }
 
 .progress-text {
-  color: var(--success);
+  color: var(--primary); /* Changed to blue */
   font-weight: 500;
 }
 
@@ -530,7 +568,7 @@ body {
   transform: scale(1.1);
 }
 
-.minimal-homepage.dark .delete-button:hover {
+.homepage-container.dark .delete-button:hover {
   background: #431c1c;
   color: #f87171;
 }
@@ -550,10 +588,10 @@ body {
 }
 
 /* =============================================================================
-   TIKTOK READER
+   READER CONTAINER
    ============================================================================= */
 
-.tiktok-reader {
+.reader-container {
   position: fixed;
   top: 0;
   left: 0;
@@ -561,15 +599,17 @@ body {
   height: 100vh;
   height: 100dvh;
   overflow: hidden;
-  transition: background-color 0.3s ease;
+  transition: all 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
   font-family: 'Inter', sans-serif;
+  opacity: 0;
+  animation: fadeInReader 0.6s ease forwards;
 }
 
-.tiktok-reader.light {
+.reader-container.light {
   background: #fcfcfc;
 }
 
-.tiktok-reader.dark {
+.reader-container.dark {
   background: #0f172a;
   color: var(--text-dark);
 }
@@ -586,7 +626,7 @@ body {
   transition: opacity 0.3s ease;
 }
 
-.tiktok-reader.dark .progress-bar {
+.reader-container.dark .progress-bar {
   background: rgba(255, 255, 255, 0.1);
 }
 
@@ -600,7 +640,7 @@ body {
   opacity: 0;
 }
 
-/* Control Panel - Mobile Responsive */
+/* Control Panel */
 .control-panel {
   position: fixed;
   top: 1.5rem;
@@ -618,7 +658,7 @@ body {
   max-width: calc(100vw - 3rem);
 }
 
-.tiktok-reader.dark .control-panel {
+.reader-container.dark .control-panel {
   background: var(--surface-dark);
   border-color: var(--border-dark);
 }
@@ -653,7 +693,7 @@ body {
   border-right: none;
 }
 
-.tiktok-reader.dark .control-btn {
+.reader-container.dark .control-btn {
   color: #94a3b8;
   border-color: var(--border-dark);
 }
@@ -663,7 +703,7 @@ body {
   color: var(--text-light);
 }
 
-.tiktok-reader.dark .control-btn:hover:not(:disabled) {
+.reader-container.dark .control-btn:hover:not(:disabled) {
   background: rgba(255, 255, 255, 0.05);
   color: var(--text-dark);
 }
@@ -673,7 +713,7 @@ body {
   color: var(--primary);
 }
 
-.tiktok-reader.dark .control-btn.active {
+.reader-container.dark .control-btn.active {
   background: rgba(37, 99, 235, 0.15);
   color: #60a5fa;
 }
@@ -683,16 +723,7 @@ body {
   cursor: not-allowed;
 }
 
-.control-btn:disabled:hover {
-  background: transparent;
-  color: #6b7280;
-}
-
-.tiktok-reader.dark .control-btn:disabled:hover {
-  color: #94a3b8;
-}
-
-/* Section Info - Responsive */
+/* Section Info */
 .section-info {
   display: flex;
   align-items: center;
@@ -703,7 +734,7 @@ body {
   flex-shrink: 1;
 }
 
-.tiktok-reader.dark .section-info {
+.reader-container.dark .section-info {
   border-color: var(--border-dark);
 }
 
@@ -724,7 +755,7 @@ body {
   min-width: 0;
 }
 
-.tiktok-reader.dark .section-counter-container {
+.reader-container.dark .section-counter-container {
   color: #e5e7eb;
 }
 
@@ -732,7 +763,7 @@ body {
   background: rgba(0, 0, 0, 0.05);
 }
 
-.tiktok-reader.dark .section-counter-container:hover {
+.reader-container.dark .section-counter-container:hover {
   background: rgba(255, 255, 255, 0.05);
 }
 
@@ -774,7 +805,7 @@ body {
   margin: 0;
 }
 
-.tiktok-reader.dark .section-editor-input {
+.reader-container.dark .section-editor-input {
   background: var(--bg-dark);
   border-color: var(--border-dark);
   color: var(--text-dark);
@@ -810,7 +841,7 @@ body {
   transition: all 0.2s ease;
 }
 
-.tiktok-reader.dark .ui-toggle-btn {
+.reader-container.dark .ui-toggle-btn {
   color: #94a3b8;
 }
 
@@ -819,48 +850,37 @@ body {
   color: var(--text-light);
 }
 
-.tiktok-reader.dark .ui-toggle-btn:hover {
+.reader-container.dark .ui-toggle-btn:hover {
   background: rgba(255, 255, 255, 0.05);
   color: var(--text-dark);
 }
 
-/* Font Controls - Bottom Overlay */
+/* Font Controls - Bottom Right Corner */
 .font-controls {
   position: fixed;
   bottom: 2rem;
-  left: 50%;
-  transform: translateX(-50%);
+  right: 2rem;
   display: flex;
   align-items: center;
-  gap: 1rem;
-  background: white;
-  border-radius: 16px;
-  padding: 0.75rem 1.5rem;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
-  border: 1px solid var(--border-light);
+  gap: 0.5rem;
   z-index: 1000;
   transition: all 0.3s ease;
   opacity: 0;
   pointer-events: none;
-  transform: translateX(-50%) translateY(20px);
-}
-
-.tiktok-reader.dark .font-controls {
-  background: var(--surface-dark);
-  border-color: var(--border-dark);
+  transform: translateY(20px);
 }
 
 .font-controls.visible {
   opacity: 1;
   pointer-events: auto;
-  transform: translateX(-50%) translateY(0);
+  transform: translateY(0);
 }
 
 .font-btn {
-  width: 44px;
-  height: 44px;
-  border: none;
-  background: var(--surface-light);
+  width: 48px;
+  height: 48px;
+  border: 1px solid var(--border-light);
+  background: white;
   color: #374151;
   border-radius: 12px;
   cursor: pointer;
@@ -868,11 +888,12 @@ body {
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
-  border: 1px solid var(--border-light);
+  font-weight: 600;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.tiktok-reader.dark .font-btn {
-  background: var(--bg-dark);
+.reader-container.dark .font-btn {
+  background: var(--surface-dark);
   color: var(--text-dark);
   border-color: var(--border-dark);
 }
@@ -881,6 +902,7 @@ body {
   background: var(--primary);
   color: white;
   transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
 }
 
 .font-btn.disabled {
@@ -888,57 +910,12 @@ body {
   cursor: not-allowed;
 }
 
-.font-size-display {
-  font-size: 1rem;
-  font-weight: 600;
-  color: #374151;
-  min-width: 48px;
-  text-align: center;
+.font-btn-small {
+  font-size: 14px;
 }
 
-.tiktok-reader.dark .font-size-display {
-  color: var(--text-dark);
-}
-
-.font-controls-toggle {
-  position: fixed;
-  bottom: 2rem;
-  right: 2rem;
-  width: 56px;
-  height: 56px;
-  border: 1px solid var(--border-light);
-  border-radius: 16px;
-  background: white;
-  color: #374151;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-  z-index: 999;
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  font-size: 18px;
-  font-weight: 600;
-  opacity: 0;
-  pointer-events: none;
-  transform: translateY(20px);
-}
-
-.tiktok-reader.dark .font-controls-toggle {
-  background: var(--surface-dark);
-  color: var(--text-dark);
-  border-color: var(--border-dark);
-}
-
-.font-controls-toggle.visible {
-  opacity: 1;
-  pointer-events: auto;
-  transform: translateY(0);
-}
-
-.font-controls-toggle:hover {
-  transform: scale(1.05) translateY(0);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+.font-btn-large {
+  font-size: 20px;
 }
 
 /* Standalone UI Toggle */
@@ -961,7 +938,7 @@ body {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-.tiktok-reader.dark .standalone-ui-toggle {
+.reader-container.dark .standalone-ui-toggle {
   background: var(--surface-dark);
   color: var(--text-dark);
   border-color: var(--border-dark);
@@ -1030,7 +1007,7 @@ body {
   transition: font-size 0.2s ease;
 }
 
-.tiktok-reader.dark .text-content {
+.reader-container.dark .text-content {
   color: var(--text-dark);
 }
 
@@ -1060,16 +1037,16 @@ body {
   color: var(--bionic-normal-light);
 }
 
-.tiktok-reader.dark .bionic-word strong {
+.reader-container.dark .bionic-word strong {
   color: var(--bionic-bold-dark);
   font-weight: 700;
 }
 
-.tiktok-reader.dark .bionic-word {
+.reader-container.dark .bionic-word {
   color: var(--bionic-normal-dark);
 }
 
-/* Scroll Hint */
+/* Scroll Hint - Updated Layout */
 .scroll-hint {
   position: fixed;
   bottom: 6rem;
@@ -1084,7 +1061,7 @@ body {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
   background: rgba(0, 0, 0, 0.8);
   color: white;
   padding: 1rem 1.5rem;
@@ -1098,15 +1075,17 @@ body {
   color: white;
 }
 
-.scroll-hint-icon {
-  animation: bounce-gentle 2s ease-in-out infinite;
-}
-
 .scroll-hint-text {
   font-size: 0.875rem;
   font-weight: 500;
   text-align: center;
   opacity: 0.9;
+  order: 1;
+}
+
+.scroll-hint-icon {
+  animation: bounce-gentle 2s ease-in-out infinite;
+  order: 2;
 }
 
 /* Custom Bionic Icon */
@@ -1185,6 +1164,28 @@ body {
   }
 }
 
+@keyframes fadeInReader {
+  0% {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes slideDown {
+  0% {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @keyframes fadeOut {
   0% {
     opacity: 1;
@@ -1202,6 +1203,26 @@ body {
   }
   50% {
     transform: translateY(-8px);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    filter: drop-shadow(0 0 8px rgba(37, 99, 235, 0.3));
+  }
+  50% {
+    filter: drop-shadow(0 0 12px rgba(37, 99, 235, 0.6));
+  }
+}
+
+@keyframes brand-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.7;
+    transform: scale(1.2);
   }
 }
 
@@ -1260,14 +1281,20 @@ body {
 
   .grid-header {
     margin-bottom: 20px;
+    padding: 0 8px;
   }
 
   .grid-header h2 {
     font-size: 28px;
   }
 
+  .books {
+    padding: 0 8px;
+  }
+
   .book-row {
-    padding: 16px 4px;
+    padding: 16px 16px;
+    margin: 0 -8px;
   }
 
   .book-main {
@@ -1287,7 +1314,7 @@ body {
     height: 36px;
   }
 
-  /* TikTok Reader Mobile */
+  /* Reader Mobile */
   .section-content {
     padding: 0 1.5rem;
   }
@@ -1321,20 +1348,12 @@ body {
 
   .font-controls {
     bottom: 1.5rem;
-    padding: 0.5rem 1rem;
-    gap: 0.75rem;
+    right: 1.5rem;
   }
 
   .font-btn {
-    width: 40px;
-    height: 40px;
-  }
-
-  .font-controls-toggle {
-    bottom: 1.5rem;
-    right: 1.5rem;
-    width: 52px;
-    height: 52px;
+    width: 44px;
+    height: 44px;
   }
 
   .scroll-hint {
@@ -1380,14 +1399,18 @@ body {
   }
 
   /* Library */
+  .books {
+    padding: 0 4px;
+  }
+
   .book-row {
-    padding: 14px 0;
+    padding: 14px 12px;
+    margin: 0 -4px;
   }
 
   .book-indicator {
     width: 10px;
     height: 10px;
-    margin-left: 2px;
   }
 
   .progress-arc {
@@ -1402,7 +1425,7 @@ body {
     height: 32px;
   }
 
-  /* TikTok Reader */
+  /* Reader */
   :root {
     --safe-area-top: 50px;
     --safe-area-bottom: 50px;
@@ -1433,20 +1456,20 @@ body {
 
   .font-controls {
     bottom: 1rem;
-    padding: 0.5rem 0.75rem;
+    right: 1rem;
   }
 
   .font-btn {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
   }
 
-  .font-controls-toggle {
-    bottom: 1rem;
-    right: 1rem;
-    width: 48px;
-    height: 48px;
-    font-size: 16px;
+  .font-btn-small {
+    font-size: 12px;
+  }
+
+  .font-btn-large {
+    font-size: 18px;
   }
 
   .scroll-hint {
@@ -1467,41 +1490,12 @@ body {
   }
 
   .book-row {
-    padding: 18px 4px;
+    padding: 18px 16px;
   }
 
   .delete-button {
     min-width: 44px;
     min-height: 44px;
-  }
-}
-
-/* Landscape Mobile */
-@media (max-width: 896px) and (orientation: landscape) {
-  .main-content.upload-view {
-    padding-top: 10px;
-    padding-bottom: 10px;
-  }
-
-  .upload-zone {
-    gap: 24px;
-  }
-
-  .upload-header h1 {
-    font-size: 28px;
-    margin-bottom: 8px;
-  }
-
-  .drop-area {
-    height: 120px;
-  }
-
-  .main-content.library-view {
-    padding-top: 10px;
-  }
-
-  .grid-header {
-    margin-bottom: 16px;
   }
 }
 
@@ -1522,11 +1516,9 @@ body {
     font-size: 0.75rem;
     padding: 0.125rem 0.25rem;
   }
-}
 
-/* High DPI Displays */
-@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 2dppx) {
-  .brand-icon {
-    transform: translateZ(0);
+  .font-controls {
+    flex-direction: column;
+    gap: 0.25rem;
   }
 }
