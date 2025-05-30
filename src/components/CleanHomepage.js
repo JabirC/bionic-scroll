@@ -10,7 +10,7 @@ import {
   Upload,
   Loader2,
   Plus,
-  RotateCcw
+  Trash2
 } from 'lucide-react';
 
 const CleanHomepage = ({ onTextExtracted, isLoading, setIsLoading }) => {
@@ -18,6 +18,7 @@ const CleanHomepage = ({ onTextExtracted, isLoading, setIsLoading }) => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isClient, setIsClient] = useState(false);
   const [library, setLibrary] = useState([]);
+  const [isInitialized, setIsInitialized] = useState(false);
   const fileLibrary = new FileLibrary();
 
   useEffect(() => {
@@ -27,6 +28,8 @@ const CleanHomepage = ({ onTextExtracted, isLoading, setIsLoading }) => {
       setIsDarkMode(savedTheme === 'dark');
     }
     loadLibrary();
+    // Add a small delay to ensure smooth initial render
+    setTimeout(() => setIsInitialized(true), 100);
   }, []);
 
   useEffect(() => {
@@ -114,7 +117,7 @@ const CleanHomepage = ({ onTextExtracted, isLoading, setIsLoading }) => {
     }
   };
 
-  if (!isClient) {
+  if (!isClient || !isInitialized) {
     return (
       <div className="minimal-homepage loading">
         <div className="loading-container">
@@ -152,7 +155,7 @@ const CleanHomepage = ({ onTextExtracted, isLoading, setIsLoading }) => {
       </nav>
 
       {/* Main */}
-      <main className="main-content">
+      <main className={`main-content ${showLibrary ? 'library-view' : 'upload-view'}`}>
         {showLibrary && library.length > 0 ? (
           <LibraryGrid 
             library={library}
@@ -224,7 +227,7 @@ const UploadZone = ({ onDrop, onFileSelect, isLoading }) => {
             <>
               <Upload size={32} className="icon" />
               <span className="status">{isDragOver ? 'Drop file' : 'Drop or click'}</span>
-              <span className="format">PDF, EPUB up to 50MB</span>
+              <span className="format">PDF, EPUB up to 100MB</span>
             </>
           )}
         </div>
@@ -288,10 +291,14 @@ const LibraryGrid = ({ library, onFileOpen, onFileDelete }) => {
             </div>
             
             <button
-              onClick={() => onFileDelete(file.id)}
+              onClick={(e) => {
+                e.stopPropagation();
+                onFileDelete(file.id);
+              }}
               className="delete-button"
+              title="Delete file"
             >
-              <RotateCcw size={14} />
+              <Trash2 size={14} />
             </button>
           </div>
         ))}

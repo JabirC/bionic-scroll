@@ -7,6 +7,10 @@ export class TextProcessor {
     this.marginBottom = 32;
   }
 
+  setFontSize(fontSize) {
+    this.fontSize = fontSize;
+  }
+
   calculateSectionCapacity() {
     const safeAreaTop = 80;
     const safeAreaBottom = 80;

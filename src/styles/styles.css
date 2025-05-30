@@ -1272,3 +1272,420 @@ body {
     font-size: 15px;
   }
 }
+
+
+/* src/styles/styles.css - Add to existing file */
+
+/* Improve page transitions */
+.minimal-homepage {
+  transition: opacity 0.3s ease;
+  min-height: 100dvh; /* Better mobile support */
+}
+
+/* Better mobile main content */
+.main-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 0 32px 32px;
+  min-height: 0; /* Allow proper flex shrinking */
+}
+
+.main-content.library-view {
+  justify-content: flex-start;
+  padding-top: 32px;
+}
+
+.main-content.upload-view {
+  justify-content: center;
+}
+
+/* Enhanced library grid for better mobile support */
+.library-grid {
+  max-width: 640px;
+  width: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Better spacing for books container */
+.books {
+  display: flex;
+  flex-direction: column;
+  gap: 1px; /* Reduced gap for better mobile experience */
+  margin: 0;
+}
+
+/* Improved delete button with red hover */
+.delete-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  background: none;
+  color: #999999;
+  border-radius: 6px;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.2s ease;
+}
+
+.book-row:hover .delete-button {
+  opacity: 1;
+}
+
+.delete-button:hover {
+  background: #fee2e2;
+  color: #dc2626;
+  transform: scale(1.05);
+}
+
+.minimal-homepage.dark .delete-button:hover {
+  background: #7f1d1d;
+  color: #f87171;
+}
+
+/* Always show delete button on touch devices */
+@media (hover: none) and (pointer: coarse) {
+  .delete-button {
+    opacity: 1;
+  }
+}
+
+/* Enhanced TikTok Reader transitions */
+.tiktok-reader {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  height: 100dvh; /* Better mobile support */
+  overflow: hidden;
+  transition: background-color 0.3s ease;
+}
+
+/* Smooth font size transitions */
+.text-content {
+  transition: font-size 0.2s ease;
+}
+
+/* Enhanced control panel for font size buttons */
+.control-panel {
+  position: fixed;
+  top: 1.5rem;
+  right: 1.5rem;
+  display: flex;
+  align-items: stretch;
+  background: white;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+  z-index: 1000;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--border-light);
+  overflow: hidden;
+  height: 46px;
+}
+
+.control-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.control-btn:disabled:hover {
+  background: transparent;
+  color: #6b7280;
+}
+
+.tiktok-reader.dark .control-btn:disabled:hover {
+  color: #94a3b8;
+}
+
+/* Mobile responsive improvements */
+@media (max-width: 768px) {
+  .minimal-homepage {
+    min-height: 100dvh;
+  }
+
+  .main-content {
+    padding: 0 24px 24px;
+    min-height: calc(100dvh - 80px); /* Account for nav height */
+  }
+
+  .main-content.library-view {
+    padding-top: 20px;
+    justify-content: flex-start;
+  }
+
+  .upload-zone {
+    gap: 32px;
+    width: 100%;
+  }
+
+  .upload-header h1 {
+    font-size: 36px;
+    margin-bottom: 12px;
+  }
+
+  .drop-area {
+    height: 160px;
+  }
+
+  .library-grid {
+    max-width: 100%;
+    min-height: 0;
+  }
+
+  .grid-header {
+    margin-bottom: 20px;
+  }
+
+  .grid-header h2 {
+    font-size: 28px;
+  }
+
+  .books {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  .book-row {
+    padding: 16px 4px;
+  }
+
+  .book-main {
+    gap: 12px;
+  }
+
+  .book-title {
+    font-size: 15px;
+  }
+
+  .book-time {
+    font-size: 13px;
+  }
+
+  /* TikTok Reader mobile adjustments */
+  :root {
+    --safe-area-top: 60px;
+    --safe-area-bottom: 60px;
+  }
+
+  .section-content {
+    padding: 0 1.5rem;
+  }
+  
+  .text-content {
+    line-height: 1.85;
+  }
+  
+  .control-panel {
+    top: 1rem;
+    right: 1rem;
+    height: 42px;
+  }
+
+  .standalone-ui-toggle {
+    top: 1rem;
+    right: 1rem;
+    width: 40px;
+    height: 40px;
+  }
+
+  .control-btn, .ui-toggle-btn {
+    width: 42px;
+    height: 42px;
+  }
+
+  .scroll-hint {
+    bottom: 4rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .main-content {
+    padding: 0 20px 20px;
+    min-height: calc(100dvh - 72px); /* Smaller nav on mobile */
+  }
+
+  .main-content.library-view {
+    padding-top: 16px;
+  }
+
+  .upload-header h1 {
+    font-size: 32px;
+  }
+
+  .drop-area {
+    height: 140px;
+  }
+
+  .library-grid {
+    width: 100%;
+  }
+
+  .book-row {
+    padding: 14px 0;
+  }
+
+  .book-indicator {
+    width: 10px;
+    height: 10px;
+  }
+
+  .progress-arc {
+    width: 14px;
+    height: 14px;
+    top: -2px;
+    left: -2px;
+  }
+
+  .delete-button {
+    width: 30px;
+    height: 30px;
+  }
+
+  /* TikTok Reader very small screens */
+  :root {
+    --safe-area-top: 50px;
+    --safe-area-bottom: 50px;
+  }
+
+  .section-content {
+    padding: 0 1rem;
+  }
+
+  .control-btn, .ui-toggle-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .control-panel {
+    height: 40px;
+  }
+
+  .section-info {
+    padding: 0 0.75rem;
+  }
+
+  .scroll-hint {
+    bottom: 3rem;
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .control-btn, .ui-toggle-btn, .standalone-ui-toggle {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .control-panel {
+    min-height: 44px;
+  }
+
+  .nav-button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+
+  .book-row {
+    padding: 18px 4px; /* More touch-friendly spacing */
+  }
+
+  .delete-button {
+    min-width: 44px;
+    min-height: 44px;
+    width: 44px;
+    height: 44px;
+  }
+}
+
+/* Landscape mobile adjustments */
+@media (max-width: 896px) and (orientation: landscape) {
+  .main-content.upload-view {
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+
+  .upload-zone {
+    gap: 24px;
+  }
+
+  .upload-header h1 {
+    font-size: 28px;
+    margin-bottom: 8px;
+  }
+
+  .drop-area {
+    height: 120px;
+  }
+
+  .main-content.library-view {
+    padding-top: 10px;
+  }
+
+  .grid-header {
+    margin-bottom: 16px;
+  }
+}
+
+/* Loading state improvements */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  height: 100dvh;
+  color: #6b7280;
+  transition: opacity 0.3s ease;
+}
+
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid rgba(0, 0, 0, 0.1);
+  border-top: 3px solid var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 1rem;
+}
+
+/* Smooth page transitions */
+.minimal-homepage.loading .loading-container {
+  animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Better drop area feedback */
+.drop-area {
+  transition: all 0.2s ease;
+}
+
+.drop-area.processing {
+  pointer-events: none;
+  opacity: 0.8;
+}
+
+/* Enhanced format text in drop area */
+.drop-content .format {
+  font-size: 14px;
+  color: #888888;
+  font-weight: 500;
+}

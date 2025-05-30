@@ -1,8 +1,8 @@
 // src/app/api/extract-text/route.js
 import { NextResponse } from 'next/server';
 
-const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50MB
-const TIMEOUT_DURATION = 30000; // 30 seconds
+const MAX_FILE_SIZE = 100 * 1024 * 1024; // Increased to 100MB
+const TIMEOUT_DURATION = 45000; // Increased to 45 seconds
 
 export async function POST(request) {
   try {
@@ -28,7 +28,7 @@ export async function POST(request) {
     // Validate file size
     if (file.size > MAX_FILE_SIZE) {
       return NextResponse.json(
-        { error: 'File too large. Maximum size is 50MB.' },
+        { error: 'File too large. Maximum size is 100MB.' }, // Updated message
         { status: 400 }
       );
     }

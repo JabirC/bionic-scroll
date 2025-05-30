@@ -1,6 +1,6 @@
 // src/components/TikTokReader.js
 import React, { useState, useEffect, useRef, useCallback } from "react";
-import { Home, Sun, Moon, EyeOff, Eye } from "lucide-react";
+import { Home, Sun, Moon, EyeOff, Eye, Minus, Plus } from "lucide-react";
 import { TextProcessor } from "../utils/textProcessor";
 import { FileLibrary } from "../utils/fileLibrary";
 import BionicIcon from "./BionicIcon";
@@ -16,28 +16,49 @@ const TikTokReader = ({ text, fileName, onReset, fileId }) => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isEditingSection, setIsEditingSection] = useState(false);
   const [isClient, setIsClient] = useState(false);
+  const [fontSize, setFontSize] = useState(22); // Default font size
   
   const containerRef = useRef(null);
   const textProcessor = useRef(new TextProcessor()).current;
   const fileLibrary = useRef(new FileLibrary()).current;
   const lastScrollTime = useRef(Date.now());
-
   
+  // Touch handling state
+  const touchStartY = useRef(0);
+  const touchStartTime = useRef(0);
+  const isScrolling = useRef(false);
+
+  const MIN_FONT_SIZE = 14;
+  const MAX_FONT_SIZE = 32;
 
   // Handle hydration and theme
   useEffect(() => {
     setIsClient(true);
     const savedTheme = localStorage.getItem('omniReader-theme');
+    const savedFontSize = localStorage.getItem('omniReader-fontSize');
+    
     if (savedTheme) {
       setIsDarkMode(savedTheme === 'dark');
+    }
+    if (savedFontSize) {
+      const parsedSize = parseInt(savedFontSize, 10);
+      if (parsedSize >= MIN_FONT_SIZE && parsedSize <= MAX_FONT_SIZE) {
+        setFontSize(parsedSize);
+      }
     }
   }, []);
 
   useEffect(() => {
     if (isClient) {
       localStorage.setItem('omniReader-theme', isDarkMode ? 'dark' : 'light');
+      localStorage.setItem('omniReader-fontSize', fontSize.toString());
     }
-  }, [isDarkMode, isClient]);
+  }, [isDarkMode, fontSize, isClient]);
+
+  // Update text processor font size
+  useEffect(() => {
+    textProcessor.setFontSize(fontSize);
+  }, [fontSize, textProcessor]);
 
   // Initialize sections and restore position
   useEffect(() => {
@@ -67,9 +88,9 @@ const TikTokReader = ({ text, fileName, onReset, fileId }) => {
         }
       }
     }
-  }, [text, textProcessor, fileId, fileLibrary]);
+  }, [text, textProcessor, fileId, fileLibrary, fontSize]);
 
-  // Recalculate sections on window resize
+  // Recalculate sections on window resize or font size change
   useEffect(() => {
     const handleResize = () => {
       if (text && sections.length > 0) {
@@ -95,7 +116,7 @@ const TikTokReader = ({ text, fileName, onReset, fileId }) => {
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [text, textProcessor, isBionicMode, sections, currentSectionIndex]);
+  }, [text, textProcessor, isBionicMode, sections, currentSectionIndex, fontSize]);
 
   // Re-process sections when bionic mode changes
   useEffect(() => {
@@ -125,6 +146,52 @@ const TikTokReader = ({ text, fileName, onReset, fileId }) => {
       );
     }
   }, [currentSectionIndex, sections, fileId, text, fileLibrary]);
+
+  // Touch event handlers
+  const handleTouchStart = useCallback((e) => {
+    if (isEditingSection) return;
+    
+    touchStartY.current = e.touches[0].clientY;
+    touchStartTime.current = Date.now();
+    isScrolling.current = false;
+  }, [isEditingSection]);
+
+  const handleTouchMove = useCallback((e) => {
+    if (isEditingSection) return;
+    
+    const touchY = e.touches[0].clientY;
+    const deltaY = touchStartY.current - touchY;
+    
+    if (Math.abs(deltaY) > 10) {
+      isScrolling.current = true;
+    }
+  }, [isEditingSection]);
+
+  const handleTouchEnd = useCallback((e) => {
+    if (isEditingSection || !isScrolling.current) return;
+    
+    const touchEndY = e.changedTouches[0].clientY;
+    const deltaY = touchStartY.current - touchEndY;
+    const deltaTime = Date.now() - touchStartTime.current;
+    
+    // Minimum swipe distance and maximum time for a valid swipe
+    const minSwipeDistance = 50;
+    const maxSwipeTime = 500;
+    
+    if (Math.abs(deltaY) < minSwipeDistance || deltaTime > maxSwipeTime) {
+      return;
+    }
+    
+    if (isTransitioning) return;
+
+    if (deltaY > 0 && currentSectionIndex < sections.length - 1) {
+      // Swipe up - next section
+      navigateToSection(currentSectionIndex + 1, 'down');
+    } else if (deltaY < 0 && currentSectionIndex > 0) {
+      // Swipe down - previous section
+      navigateToSection(currentSectionIndex - 1, 'up');
+    }
+  }, [currentSectionIndex, sections.length, isTransitioning, isEditingSection]);
 
   const handleScroll = useCallback((e) => {
     e.preventDefault();
@@ -181,6 +248,15 @@ const TikTokReader = ({ text, fileName, onReset, fileId }) => {
     }
   };
 
+  // Font size controls
+  const increaseFontSize = () => {
+    setFontSize(prev => Math.min(prev + 2, MAX_FONT_SIZE));
+  };
+
+  const decreaseFontSize = () => {
+    setFontSize(prev => Math.max(prev - 2, MIN_FONT_SIZE));
+  };
+
   // Keyboard navigation
   useEffect(() => {
     const handleKeyDown = (e) => {
@@ -198,6 +274,12 @@ const TikTokReader = ({ text, fileName, onReset, fileId }) => {
         setShowUI(!showUI);
       } else if (e.key === 'd' || e.key === 'D') {
         setIsDarkMode(!isDarkMode);
+      } else if (e.key === '=' || e.key === '+') {
+        e.preventDefault();
+        increaseFontSize();
+      } else if (e.key === '-' || e.key === '_') {
+        e.preventDefault();
+        decreaseFontSize();
       } else if (e.key === 'Escape') {
         setIsEditingSection(false);
       }
@@ -207,11 +289,25 @@ const TikTokReader = ({ text, fileName, onReset, fileId }) => {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [currentSectionIndex, sections.length, isBionicMode, showUI, isDarkMode, isEditingSection]);
 
+  // Event listeners
   useEffect(() => {
     const container = document.body;
+    
+    // Mouse wheel
     container.addEventListener('wheel', handleScroll, { passive: false });
-    return () => container.removeEventListener('wheel', handleScroll);
-  }, [handleScroll]);
+    
+    // Touch events
+    container.addEventListener('touchstart', handleTouchStart, { passive: true });
+    container.addEventListener('touchmove', handleTouchMove, { passive: true });
+    container.addEventListener('touchend', handleTouchEnd, { passive: true });
+    
+    return () => {
+      container.removeEventListener('wheel', handleScroll);
+      container.removeEventListener('touchstart', handleTouchStart);
+      container.removeEventListener('touchmove', handleTouchMove);
+      container.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [handleScroll, handleTouchStart, handleTouchMove, handleTouchEnd]);
 
   const currentSection = sections[currentSectionIndex];
 
@@ -247,6 +343,24 @@ const TikTokReader = ({ text, fileName, onReset, fileId }) => {
             title="Toggle Bionic Reading (Space)"
           >
             <BionicIcon size={16} />
+          </button>
+          
+          <button
+            onClick={decreaseFontSize}
+            className="control-btn"
+            title="Decrease Font Size (-)"
+            disabled={fontSize <= MIN_FONT_SIZE}
+          >
+            <Minus size={16} />
+          </button>
+
+          <button
+            onClick={increaseFontSize}
+            className="control-btn"
+            title="Increase Font Size (+)"
+            disabled={fontSize >= MAX_FONT_SIZE}
+          >
+            <Plus size={16} />
           </button>
           
           <button
@@ -314,10 +428,14 @@ const TikTokReader = ({ text, fileName, onReset, fileId }) => {
                 {currentSection.isBionic ? (
                   <div
                     className="text-content bionic-text"
+                    style={{ fontSize: `${fontSize}px` }}
                     dangerouslySetInnerHTML={{ __html: currentSection.processed }}
                   />
                 ) : (
-                  <div className="text-content regular-text">
+                  <div 
+                    className="text-content regular-text"
+                    style={{ fontSize: `${fontSize}px` }}
+                  >
                     <div dangerouslySetInnerHTML={{ __html: currentSection.regularFormatted }} />
                   </div>
                 )}
