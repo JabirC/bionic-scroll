@@ -195,7 +195,7 @@ export class TextProcessor {
       } else if (word.length <= 5) {
         boldLength = 2;
       } else {
-        boldLength = Math.max(3, Math.ceil(word.length * 0.4));
+        boldLength = Math.max(3, Math.ceil(word.length * 0.5));
       }
 
       const boldPart = word.slice(0, boldLength);
