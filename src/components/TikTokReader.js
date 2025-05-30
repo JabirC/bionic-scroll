@@ -16,7 +16,8 @@ const TikTokReader = ({ text, fileName, onReset, fileId }) => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isEditingSection, setIsEditingSection] = useState(false);
   const [isClient, setIsClient] = useState(false);
-  const [fontSize, setFontSize] = useState(22); // Default font size
+  const [fontSize, setFontSize] = useState(22);
+  const [showFontControls, setShowFontControls] = useState(false);
   
   const containerRef = useRef(null);
   const textProcessor = useRef(new TextProcessor()).current;
@@ -280,14 +281,18 @@ const TikTokReader = ({ text, fileName, onReset, fileId }) => {
       } else if (e.key === '-' || e.key === '_') {
         e.preventDefault();
         decreaseFontSize();
+      } else if (e.key === 'f' || e.key === 'F') {
+        e.preventDefault();
+        setShowFontControls(!showFontControls);
       } else if (e.key === 'Escape') {
         setIsEditingSection(false);
+        setShowFontControls(false);
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [currentSectionIndex, sections.length, isBionicMode, showUI, isDarkMode, isEditingSection]);
+  }, [currentSectionIndex, sections.length, isBionicMode, showUI, isDarkMode, isEditingSection, showFontControls]);
 
   // Event listeners
   useEffect(() => {
@@ -334,7 +339,7 @@ const TikTokReader = ({ text, fileName, onReset, fileId }) => {
         />
       </div>
 
-      {/* Control Panel */}
+      {/* Control Panel - Responsive Design */}
       <div className={`control-panel ${showUI ? 'visible' : 'hidden'}`}>
         <div className="control-group">
           <button
@@ -346,29 +351,11 @@ const TikTokReader = ({ text, fileName, onReset, fileId }) => {
           </button>
           
           <button
-            onClick={decreaseFontSize}
-            className="control-btn"
-            title="Decrease Font Size (-)"
-            disabled={fontSize <= MIN_FONT_SIZE}
-          >
-            <Minus size={16} />
-          </button>
-
-          <button
-            onClick={increaseFontSize}
-            className="control-btn"
-            title="Increase Font Size (+)"
-            disabled={fontSize >= MAX_FONT_SIZE}
-          >
-            <Plus size={16} />
-          </button>
-          
-          <button
             onClick={() => setIsDarkMode(!isDarkMode)}
             className="control-btn"
             title="Toggle Theme (D)"
           >
-            {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
+            {isDarkMode ? <Sun size={16} /> : <Moon size={16} />}
           </button>
           
           <button
@@ -376,7 +363,7 @@ const TikTokReader = ({ text, fileName, onReset, fileId }) => {
             className="control-btn"
             title="Go Home"
           >
-            <Home size={18} />
+            <Home size={16} />
           </button>
         </div>
 
@@ -397,10 +384,42 @@ const TikTokReader = ({ text, fileName, onReset, fileId }) => {
             onClick={() => setShowUI(!showUI)}
             title="Hide UI (H)"
           >
-            <EyeOff size={18} />
+            <EyeOff size={16} />
           </button>
         </div>
       </div>
+
+      {/* Font Controls - Bottom Overlay */}
+      <div className={`font-controls ${showFontControls ? 'visible' : 'hidden'}`}>
+        <button
+          onClick={decreaseFontSize}
+          className={`font-btn ${fontSize <= MIN_FONT_SIZE ? 'disabled' : ''}`}
+          title="Decrease Font Size (-)"
+          disabled={fontSize <= MIN_FONT_SIZE}
+        >
+          <Minus size={18} />
+        </button>
+        
+        <span className="font-size-display">{fontSize}px</span>
+        
+        <button
+          onClick={increaseFontSize}
+          className={`font-btn ${fontSize >= MAX_FONT_SIZE ? 'disabled' : ''}`}
+          title="Increase Font Size (+)"
+          disabled={fontSize >= MAX_FONT_SIZE}
+        >
+          <Plus size={18} />
+        </button>
+      </div>
+
+      {/* Font Controls Toggle */}
+      <button
+        className={`font-controls-toggle ${showUI && !showFontControls ? 'visible' : 'hidden'}`}
+        onClick={() => setShowFontControls(true)}
+        title="Font Size Controls (F)"
+      >
+        Aa
+      </button>
 
       <button
         className={`standalone-ui-toggle ${showUI ? 'hidden' : 'visible'}`}

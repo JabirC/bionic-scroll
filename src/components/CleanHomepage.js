@@ -10,7 +10,8 @@ import {
   Upload,
   Loader2,
   Plus,
-  Trash2
+  Trash2,
+  Zap
 } from 'lucide-react';
 
 const CleanHomepage = ({ onTextExtracted, isLoading, setIsLoading }) => {
@@ -28,7 +29,6 @@ const CleanHomepage = ({ onTextExtracted, isLoading, setIsLoading }) => {
       setIsDarkMode(savedTheme === 'dark');
     }
     loadLibrary();
-    // Add a small delay to ensure smooth initial render
     setTimeout(() => setIsInitialized(true), 100);
   }, []);
 
@@ -132,7 +132,11 @@ const CleanHomepage = ({ onTextExtracted, isLoading, setIsLoading }) => {
       {/* Header */}
       <nav className="top-nav">
         <div className="nav-brand">
-          <span className="brand-text">Omni Reader</span>
+          <div className="brand-logo">
+            <Zap className="brand-icon" size={24} />
+            <span className="brand-text">Omni Reader</span>
+            <div className="brand-accent"></div>
+          </div>
         </div>
         
         <div className="nav-actions">
@@ -140,6 +144,7 @@ const CleanHomepage = ({ onTextExtracted, isLoading, setIsLoading }) => {
             <button
               onClick={() => setShowLibrary(!showLibrary)}
               className="nav-button"
+              title={showLibrary ? 'Upload' : 'Library'}
             >
               {showLibrary ? <Plus size={18} /> : <Library size={18} />}
             </button>
@@ -148,6 +153,7 @@ const CleanHomepage = ({ onTextExtracted, isLoading, setIsLoading }) => {
           <button
             onClick={() => setIsDarkMode(!isDarkMode)}
             className="nav-button"
+            title="Toggle theme"
           >
             {isDarkMode ? <Sun size={18} /> : <Moon size={18} />}
           </button>
@@ -227,7 +233,7 @@ const UploadZone = ({ onDrop, onFileSelect, isLoading }) => {
             <>
               <Upload size={32} className="icon" />
               <span className="status">{isDragOver ? 'Drop file' : 'Drop or click'}</span>
-              <span className="format">PDF, EPUB up to 100MB</span>
+              <span className="format">PDF, EPUB up to 200MB</span>
             </>
           )}
         </div>
@@ -298,7 +304,7 @@ const LibraryGrid = ({ library, onFileOpen, onFileDelete }) => {
               className="delete-button"
               title="Delete file"
             >
-              <Trash2 size={14} />
+              <Trash2 size={18} />
             </button>
           </div>
         ))}
