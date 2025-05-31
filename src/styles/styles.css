@@ -738,8 +738,8 @@ body {
   transition: all 0.2s ease;
   flex-shrink: 0;
   position: relative;
-  padding: 0;
-  margin: 0;
+  /* padding: 0;
+  margin: 0; */
   line-height: 1;
 }
 
