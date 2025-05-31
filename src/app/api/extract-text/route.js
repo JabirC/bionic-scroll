@@ -29,9 +29,18 @@ export async function POST(request) {
       );
     }
 
-    // Validate file type
-    const validTypes = ['application/pdf', 'application/epub+zip'];
-    if (!validTypes.includes(file.type)) {
+    // More flexible file type validation
+    const fileName = file.name.toLowerCase();
+    const fileExtension = fileName.split('.').pop();
+    
+    // Check both MIME type and file extension
+    const isPDF = file.type === 'application/pdf' || fileExtension === 'pdf';
+    const isEPUB = file.type === 'application/epub+zip' || 
+                    file.type === 'application/epub' || 
+                    file.type === 'application/octet-stream' && fileExtension === 'epub' ||
+                    fileExtension === 'epub';
+    
+    if (!isPDF && !isEPUB) {
       return NextResponse.json(
         { error: ERROR_MESSAGES.INVALID_TYPE },
         { status: 400 }
@@ -57,7 +66,7 @@ export async function POST(request) {
     let result;
     
     try {
-      if (file.type === 'application/epub+zip') {
+      if (isEPUB) {
         // Dynamic import for EPUB extractor
         const { EPUBExtractor } = await import('../../../utils/epubExtractor');
         const epubExtractor = new EPUBExtractor();
@@ -89,7 +98,7 @@ export async function POST(request) {
       return NextResponse.json({
         text: result.text,
         metadata: result.metadata,
-        fileType: file.type === 'application/epub+zip' ? 'epub' : 'pdf',
+        fileType: isEPUB ? 'epub' : 'pdf',
         success: true
       });
 
