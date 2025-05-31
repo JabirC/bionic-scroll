@@ -1,4 +1,4 @@
-// src/utils/epubExtractor.js
+// src/utils/epubExtractor.js - Updated version with mobile fixes
 import JSZip from 'jszip';
 import { parseString as parseXML } from 'xml2js';
 
@@ -15,7 +15,8 @@ export class EPUBExtractor {
         throw new Error('Invalid EPUB: Missing container.xml');
       }
       
-      const containerXml = await containerFile.async('text');
+      // Use text encoding option for better mobile compatibility
+      const containerXml = await containerFile.async('string');
       const contentOpfPath = await this.parseContainer(containerXml);
       
       // Parse content.opf to get spine order
@@ -24,7 +25,7 @@ export class EPUBExtractor {
         throw new Error('Invalid EPUB: Missing content.opf');
       }
       
-      const contentOpfXml = await contentOpfFile.async('text');
+      const contentOpfXml = await contentOpfFile.async('string');
       const { spine, manifest } = await this.parseContentOpf(contentOpfXml);
       
       // Extract text from spine files in order
@@ -38,7 +39,7 @@ export class EPUBExtractor {
           const xhtmlFile = contents.file(filePath);
           
           if (xhtmlFile) {
-            const xhtmlContent = await xhtmlFile.async('text');
+            const xhtmlContent = await xhtmlFile.async('string');
             const text = this.extractTextFromXHTML(xhtmlContent);
             if (text.trim()) {
               extractedTexts.push(text);
@@ -70,18 +71,42 @@ export class EPUBExtractor {
   
   async parseContainer(containerXml) {
     return new Promise((resolve, reject) => {
-      parseXML(containerXml, (err, result) => {
+      // Add proper XML parsing options for mobile compatibility
+      const parserOptions = {
+        explicitCharkey: true,
+        normalize: true,
+        normalizeTags: false,
+        explicitRoot: true,
+        trim: true
+      };
+      
+      parseXML(containerXml, parserOptions, (err, result) => {
         if (err) {
+          console.error('XML parsing error:', err);
           reject(new Error('Failed to parse container.xml'));
           return;
         }
         
         try {
-          const rootfiles = result.container.rootfiles[0].rootfile;
-          const contentOpf = rootfiles[0].$['full-path'];
+          // Defensive programming with fallbacks for different XML structures
+          const container = result.container || {};
+          const rootfiles = container.rootfiles || [{ rootfile: [] }];
+          const rootfileArray = rootfiles[0].rootfile || [];
+          
+          // Handle both object and array structures
+          const rootfile = Array.isArray(rootfileArray) ? rootfileArray[0] : rootfileArray;
+          
+          // Access attribute correctly
+          const contentOpf = rootfile.$ ? rootfile.$['full-path'] : null;
+          
+          if (!contentOpf) {
+            throw new Error('Could not find content.opf path in container.xml');
+          }
+          
           resolve(contentOpf);
         } catch (error) {
-          reject(new Error('Invalid container.xml structure'));
+          console.error('Container parsing error:', error);
+          reject(new Error(`Invalid container.xml structure: ${error.message}`));
         }
       });
     });
@@ -89,62 +114,92 @@ export class EPUBExtractor {
   
   async parseContentOpf(contentOpfXml) {
     return new Promise((resolve, reject) => {
-      parseXML(contentOpfXml, (err, result) => {
+      const parserOptions = {
+        explicitCharkey: true,
+        normalize: true,
+        normalizeTags: false,
+        explicitRoot: true,
+        trim: true
+      };
+      
+      parseXML(contentOpfXml, parserOptions, (err, result) => {
         if (err) {
+          console.error('Content OPF parsing error:', err);
           reject(new Error('Failed to parse content.opf'));
           return;
         }
         
         try {
-          const pkg = result.package || result['opf:package'];
-          const manifestItems = pkg.manifest[0].item;
-          const spineItems = pkg.spine[0].itemref;
+          // Handle different namespaces and structures
+          const pkg = result.package || result['opf:package'] || {};
+          const manifestObj = pkg.manifest && pkg.manifest[0] || {};
+          const spineObj = pkg.spine && pkg.spine[0] || {};
           
-          // Build manifest map
+          const manifestItems = manifestObj.item || [];
+          const spineItems = spineObj.itemref || [];
+          
+          // Build manifest map with error handling
           const manifest = {};
           manifestItems.forEach(item => {
-            manifest[item.$.id] = {
-              href: item.$.href,
-              mediaType: item.$['media-type']
-            };
+            if (item && item.$) {
+              manifest[item.$.id] = {
+                href: item.$.href || '',
+                mediaType: item.$['media-type'] || ''
+              };
+            }
           });
           
-          // Build spine array
-          const spine = spineItems.map(item => item.$.idref);
+          // Build spine array with error handling
+          const spine = spineItems
+            .filter(item => item && item.$)
+            .map(item => item.$.idref)
+            .filter(Boolean);
           
           resolve({ spine, manifest });
         } catch (error) {
-          reject(new Error('Invalid content.opf structure'));
+          console.error('Content OPF structure error:', error);
+          reject(new Error(`Invalid content.opf structure: ${error.message}`));
         }
       });
     });
   }
   
   extractTextFromXHTML(xhtml) {
-    // Remove XML/HTML tags and extract text content
-    let text = xhtml
-      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, '')
-      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, '')
-      .replace(/<[^>]+>/g, ' ')
-      .replace(/&nbsp;/g, ' ')
-      .replace(/&amp;/g, '&')
-      .replace(/&lt;/g, '<')
-      .replace(/&gt;/g, '>')
-      .replace(/&quot;/g, '"')
-      .replace(/&#(\d+);/g, (match, dec) => String.fromCharCode(dec))
-      .replace(/&[^;]+;/g, ' ');
-    
-    return text;
+    try {
+      // More robust HTML/XML cleaning
+      let text = xhtml
+        .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+        .replace(/<style\b[^<]*(?:(?!<\/style>)<[^<]*)*<\/style>/gi, '')
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&amp;/g, '&')
+        .replace(/&lt;/g, '<')
+        .replace(/&gt;/g, '>')
+        .replace(/&quot;/g, '"')
+        .replace(/&#(\d+);/g, (match, dec) => String.fromCharCode(dec))
+        .replace(/&[^;]+;/g, ' ');
+      
+      return text;
+    } catch (error) {
+      console.warn('XHTML extraction error:', error);
+      // Fallback: strip all tags crudely if sophisticated parsing fails
+      return xhtml.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
+    }
   }
   
   cleanupText(text) {
-    return text
-      .replace(/\r\n/g, '\n')
-      .replace(/\r/g, '\n')
-      .replace(/\n\s*\n\s*\n+/g, '\n\n')
-      .replace(/[ \t]+/g, ' ')
-      .replace(/\n +/g, '\n')
-      .replace(/ +\n/g, '\n')
-      .trim();
+    try {
+      return text
+        .replace(/\r\n/g, '\n')
+        .replace(/\r/g, '\n')
+        .replace(/\n\s*\n\s*\n+/g, '\n\n')
+        .replace(/[ \t]+/g, ' ')
+        .replace(/\n +/g, '\n')
+        .replace(/ +\n/g, '\n')
+        .trim();
+    } catch (error) {
+      console.warn('Text cleanup error:', error);
+      return text.trim();
+    }
   }
 }

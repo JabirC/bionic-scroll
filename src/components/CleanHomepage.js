@@ -90,20 +90,8 @@ const CleanHomepage = ({ onTextExtracted, isLoading, setIsLoading }) => {
     const files = e.dataTransfer.files;
     const file = files[0];
     
-    if (file) {
-      const fileExtension = file.name.toLowerCase().split('.').pop();
-      const isValidFile = (
-        file.type === 'application/pdf' || 
-        file.type === 'application/epub+zip' ||
-        fileExtension === 'pdf' ||
-        fileExtension === 'epub'
-      );
-      
-      if (isValidFile) {
-        await processFile(file);
-      } else {
-        setUploadError('Please upload a PDF or EPUB file only.');
-      }
+    if (file && (file.type === 'application/pdf' || file.type === 'application/epub+zip')) {
+      await processFile(file);
     }
   };
 
@@ -121,33 +109,20 @@ const CleanHomepage = ({ onTextExtracted, isLoading, setIsLoading }) => {
     setUploadError('');
     
     try {
-      // More flexible file type validation
-      const fileExtension = file.name.toLowerCase().split('.').pop();
-      const isValidFile = (
-        file.type === 'application/pdf' || 
-        file.type === 'application/epub+zip' ||
-        fileExtension === 'pdf' ||
-        fileExtension === 'epub'
-      );
-      
-      if (!isValidFile) {
-        throw new Error('Please upload a PDF or EPUB file only.');
-      }
-      
       const formData = new FormData();
       formData.append('file', file);
-  
+
       const response = await fetch('/api/extract-text', {
         method: 'POST',
         body: formData,
       });
-  
+
       const result = await response.json();
-  
+
       if (!response.ok) {
         throw new Error(result.error || 'Failed to process file');
       }
-  
+
       handleFileProcessed(result.text, file, result.metadata);
     } catch (error) {
       console.error('Error processing file:', error);
@@ -273,12 +248,12 @@ const UploadZone = ({ onDrop, onFileSelect, isLoading, error, onClearError }) =>
         onClick={handleClick}
       >
         <input
-            id="file-input"
-            type="file"
-            accept=".pdf,.epub,application/pdf,application/epub+zip"
-            onChange={onFileSelect}
-            style={{ display: 'none' }}
-            disabled={isLoading}
+          id="file-input"
+          type="file"
+          accept=".pdf,.epub"
+          onChange={onFileSelect}
+          style={{ display: 'none' }}
+          disabled={isLoading}
         />
 
         <div className="drop-content">
