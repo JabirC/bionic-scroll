@@ -1,4 +1,4 @@
-/* src/styles/styles.css - Complete Updated File */
+/* src/styles/styles.css - Complete Fixed File */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 :root {
@@ -690,7 +690,7 @@ body {
   opacity: 0;
 }
 
-/* Control Panel */
+/* Control Panel - FIXED DUPLICATE STYLING */
 .control-panel {
   position: fixed;
   top: 1.5rem;
@@ -724,6 +724,7 @@ body {
   flex-shrink: 0;
 }
 
+/* FIXED Control Button Styling - CONSOLIDATED AND FIXED CENTERING */
 .control-btn {
   width: 46px;
   height: 46px;
@@ -742,14 +743,7 @@ body {
   line-height: 1;
 }
 
-.control-btn svg {
-  display: block;
-  width: 20px;
-  height: 20px;
-  margin: auto;
-  flex-shrink: 0;
-}
-
+/* FIXED: Full height borders between buttons */
 .control-btn::after {
   content: '';
   position: absolute;
@@ -798,7 +792,16 @@ body {
   cursor: not-allowed;
 }
 
-/* Section Info */
+/* FIXED: Ensure SVG icons are properly centered */
+.control-btn svg {
+  display: block;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+/* Section Info - FIXED */
 .section-info {
   display: flex;
   align-items: center;
@@ -902,7 +905,7 @@ body {
   border-color: var(--danger);
 }
 
-/* UI Toggle Section */
+/* UI Toggle Section - FIXED */
 .ui-toggle-section {
   display: flex;
   align-items: stretch;
@@ -925,14 +928,6 @@ body {
   line-height: 1;
 }
 
-.ui-toggle-btn svg {
-  display: block;
-  width: 20px;
-  height: 20px;
-  margin: auto;
-  flex-shrink: 0;
-}
-
 .reader-container.dark .ui-toggle-btn {
   color: #94a3b8;
 }
@@ -945,6 +940,14 @@ body {
 .reader-container.dark .ui-toggle-btn:hover {
   background: rgba(255, 255, 255, 0.05);
   color: var(--text-dark);
+}
+
+.ui-toggle-btn svg {
+  display: block;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  flex-shrink: 0;
 }
 
 /* Font Controls */
@@ -1034,14 +1037,6 @@ body {
   line-height: 1;
 }
 
-.standalone-ui-toggle svg {
-  display: block;
-  width: 20px;
-  height: 20px;
-  margin: auto;
-  flex-shrink: 0;
-}
-
 .reader-container.dark .standalone-ui-toggle {
   background: var(--surface-dark);
   color: var(--text-dark);
@@ -1063,6 +1058,14 @@ body {
   opacity: 1;
   pointer-events: auto;
   transform: translateY(0);
+}
+
+.standalone-ui-toggle svg {
+  display: block;
+  width: 20px;
+  height: 20px;
+  margin: 0;
+  flex-shrink: 0;
 }
 
 /* Content Areas */
@@ -1188,7 +1191,7 @@ body {
   color: var(--bionic-normal-dark);
 }
 
-/* Scroll Hint */
+/* Scroll Hint - FIXED JUMP ISSUE */
 .scroll-hint {
   position: fixed;
   bottom: 6rem;
@@ -1467,14 +1470,9 @@ body {
   .control-btn, .ui-toggle-btn {
     width: 42px;
     height: 42px;
-    display: inline-flex;
+    display: flex;
     align-items: center;
     justify-content: center;
-  }
-
-  .control-btn svg, .ui-toggle-btn svg {
-    width: 18px;
-    height: 18px;
   }
 
   .control-btn::after {
@@ -1484,12 +1482,14 @@ body {
     bottom: auto;
   }
 
+  .control-btn svg, .ui-toggle-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+
   .section-info {
     padding: 0 0.75rem;
     height: 42px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
   }
 
   .standalone-ui-toggle {
@@ -1607,13 +1607,13 @@ body {
     height: 40px;
   }
 
+  .control-btn::after {
+    height: 22px;
+  }
+
   .control-btn svg, .ui-toggle-btn svg {
     width: 16px;
     height: 16px;
-  }
-
-  .control-btn::after {
-    height: 22px;
   }
 
   .section-info {
@@ -1675,9 +1675,6 @@ body {
   .control-btn, .ui-toggle-btn, .standalone-ui-toggle, .font-btn {
     min-width: 44px;
     min-height: 44px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
   }
 
   .control-btn svg, .ui-toggle-btn svg, .standalone-ui-toggle svg {
