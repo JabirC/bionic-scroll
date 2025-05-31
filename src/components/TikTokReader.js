@@ -259,9 +259,9 @@ const TikTokReader = ({ text, fileName, onReset, fileId }) => {
           
           setTimeout(() => {
             setIsTransitioning(false);
-          }, 400);
+          }, 500);
         });
-      }, 200);
+      }, 75);
     }
   };
 

@@ -1,4 +1,4 @@
-/* src/styles/styles.css - Complete Updated File */
+/* src/styles/styles.css - Complete Fixed File */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap');
 
 :root {
@@ -108,7 +108,6 @@ body {
   background: rgba(0, 0, 0, 0.8);
 }
 
-/* Brand Logo - Enhanced Design */
 .nav-brand {
   display: flex;
   align-items: center;
@@ -212,8 +211,8 @@ body {
   padding-top: 32px;
   opacity: 1;
   transform: translateY(0);
-  height: calc(100vh - 80px); /* Set explicit height */
-  overflow: hidden; /* Hide overflow */
+  height: calc(100vh - 80px);
+  overflow: hidden;
 }
 
 .main-content.upload-view {
@@ -447,11 +446,11 @@ body {
 
 .books-container {
   flex: 1;
-  min-height: 0; /* Critical for flex child to enable scrolling */
+  min-height: 0;
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  max-height: calc(100vh - 180px); /* Ensure container has a max height */
+  max-height: calc(100vh - 180px);
 }
 
 .books {
@@ -462,7 +461,7 @@ body {
   margin: 0 -16px;
   scrollbar-width: thin;
   scrollbar-color: rgba(156, 163, 175, 0.3) transparent;
-  -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+  -webkit-overflow-scrolling: touch;
 }
 
 .books::-webkit-scrollbar {
@@ -549,10 +548,6 @@ body {
   transition: all 0.2s ease;
 }
 
-.book-row:hover:not(.disabled) .indicator-dot {
-  background: #d1d5db; /* Keep grey even on hover */
-}
-
 .progress-arc {
   position: absolute;
   top: -3px;
@@ -588,7 +583,7 @@ body {
 }
 
 .progress-text {
-  color: var(--primary); /* Blue progress text */
+  color: var(--primary);
   font-weight: 500;
 }
 
@@ -628,7 +623,7 @@ body {
   color: #f87171;
 }
 
-/* Always show delete button on touch devices and make it red */
+/* Always show delete button on touch devices */
 @media (hover: none) and (pointer: coarse) {
   .delete-button {
     opacity: 1;
@@ -695,7 +690,7 @@ body {
   opacity: 0;
 }
 
-/* Control Panel - Fixed Layout */
+/* Control Panel - FIXED DUPLICATE STYLING */
 .control-panel {
   position: fixed;
   top: 1.5rem;
@@ -729,7 +724,7 @@ body {
   flex-shrink: 0;
 }
 
-/* Fixed Control Button Styling */
+/* FIXED Control Button Styling - CONSOLIDATED AND FIXED CENTERING */
 .control-btn {
   width: 46px;
   height: 46px;
@@ -744,18 +739,18 @@ body {
   flex-shrink: 0;
   position: relative;
   padding: 0;
-  line-height: 0;
+  margin: 0;
+  line-height: 1;
 }
 
-/* Ensure consistent border between buttons */
+/* FIXED: Full height borders between buttons */
 .control-btn::after {
   content: '';
   position: absolute;
   right: 0;
-  top: 50%;
-  transform: translateY(-50%);
+  top: 0;
+  bottom: 0;
   width: 1px;
-  height: 24px;
   background-color: var(--border-light);
   transition: background-color 0.2s ease;
 }
@@ -797,24 +792,29 @@ body {
   cursor: not-allowed;
 }
 
-/* Ensure SVG icons are centered */
+/* FIXED: Ensure SVG icons are properly centered */
 .control-btn svg {
   display: block;
-  margin: 0 auto;
+  margin: 0;
+  flex-shrink: 0;
 }
 
-/* Section Info */
+/* Section Info - FIXED */
 .section-info {
   display: flex;
   align-items: center;
+  justify-content: center;
   padding: 0 1rem;
   border-left: 1px solid var(--border-light);
+  border-right: 1px solid var(--border-light);
   min-width: 0;
   flex-shrink: 1;
+  height: 46px;
 }
 
 .reader-container.dark .section-info {
   border-left-color: var(--border-dark);
+  border-right-color: var(--border-dark);
 }
 
 .section-counter-container {
@@ -832,6 +832,7 @@ body {
   justify-content: center;
   white-space: nowrap;
   min-width: 0;
+  line-height: 1;
 }
 
 .reader-container.dark .section-counter-container {
@@ -882,6 +883,7 @@ body {
   text-align: center;
   transition: all 0.2s ease;
   margin: 0;
+  line-height: 1;
 }
 
 .reader-container.dark .section-editor-input {
@@ -901,16 +903,11 @@ body {
   border-color: var(--danger);
 }
 
-/* UI Toggle Section */
+/* UI Toggle Section - FIXED */
 .ui-toggle-section {
   display: flex;
   align-items: stretch;
   flex-shrink: 0;
-  border-left: 1px solid var(--border-light);
-}
-
-.reader-container.dark .ui-toggle-section {
-  border-left-color: var(--border-dark);
 }
 
 .ui-toggle-btn {
@@ -925,7 +922,8 @@ body {
   justify-content: center;
   transition: all 0.2s ease;
   padding: 0;
-  line-height: 0;
+  margin: 0;
+  line-height: 1;
 }
 
 .reader-container.dark .ui-toggle-btn {
@@ -942,13 +940,13 @@ body {
   color: var(--text-dark);
 }
 
-/* Ensure UI toggle SVG is centered */
 .ui-toggle-btn svg {
   display: block;
-  margin: 0 auto;
+  margin: 0;
+  flex-shrink: 0;
 }
 
-/* Font Controls - Bottom Right Corner */
+/* Font Controls */
 .font-controls {
   position: fixed;
   bottom: 2rem;
@@ -983,6 +981,7 @@ body {
   transition: all 0.2s ease;
   font-weight: 600;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  line-height: 1;
 }
 
 .reader-container.dark .font-btn {
@@ -1029,6 +1028,9 @@ body {
   transition: all 0.3s ease;
   z-index: 1001;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 0;
+  margin: 0;
+  line-height: 1;
 }
 
 .reader-container.dark .standalone-ui-toggle {
@@ -1054,7 +1056,13 @@ body {
   transform: translateY(0);
 }
 
-/* Content Wrapper */
+.standalone-ui-toggle svg {
+  display: block;
+  margin: 0;
+  flex-shrink: 0;
+}
+
+/* Content Areas */
 .content-wrapper {
   position: fixed;
   top: var(--safe-area-top);
@@ -1070,7 +1078,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+  transition: transform 0.25s cubic-bezier(0.23, 1, 0.32, 1); /* Faster transition */
 }
 
 .section-content {
@@ -1112,6 +1120,44 @@ body {
   margin-bottom: 0;
 }
 
+/* Image Sections */
+.image-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  max-height: 100%;
+  width: 100%;
+}
+
+.section-image {
+  max-width: 100%;
+  max-height: calc(100vh - 200px);
+  width: auto;
+  height: auto;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+}
+
+.reader-container.dark .section-image {
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+}
+
+.image-caption {
+  margin-top: 1rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+  text-align: center;
+  font-style: italic;
+  max-width: 100%;
+  line-height: 1.4;
+}
+
+.reader-container.dark .image-caption {
+  color: #9ca3af;
+}
+
 /* Bionic Text */
 .bionic-text {
   font-weight: 400;
@@ -1139,14 +1185,13 @@ body {
   color: var(--bionic-normal-dark);
 }
 
-/* Scroll Hint - Fixed Jump Issue */
+/* Scroll Hint - FIXED JUMP ISSUE */
 .scroll-hint {
   position: fixed;
   bottom: 6rem;
   left: 50%;
   z-index: 900;
   pointer-events: none;
-  /* Fixed initial position to prevent jump */
   transform: translateX(-50%) translateY(20px);
   opacity: 0;
   transition: all 0.5s ease;
@@ -1156,9 +1201,6 @@ body {
   opacity: 1;
   transform: translateX(-50%) translateY(0);
 }
-
-/* Remove the fadeInUp and fadeOut animations since they cause the jump */
-/* Use a simpler show/hide with CSS transitions */
 
 .scroll-hint-content {
   display: flex;
@@ -1328,7 +1370,6 @@ body {
     --safe-area-bottom: 60px;
   }
 
-  /* Top Navigation Mobile */
   .top-nav {
     padding: 20px 24px;
   }
@@ -1342,7 +1383,6 @@ body {
     height: 36px;
   }
 
-  /* Main Content Mobile */
   .main-content {
     padding: 0 24px 24px;
     min-height: calc(100dvh - 80px);
@@ -1350,10 +1390,9 @@ body {
 
   .main-content.library-view {
     padding-top: 20px;
-    height: calc(100dvh - 76px); /* Adjust for mobile */
+    height: calc(100dvh - 76px);
   }
 
-  /* Upload Zone Mobile */
   .upload-zone {
     gap: 32px;
   }
@@ -1367,7 +1406,6 @@ body {
     height: 160px;
   }
 
-  /* Library Grid Mobile */
   .library-grid {
     max-width: 100%;
   }
@@ -1407,7 +1445,6 @@ body {
     height: 36px;
   }
 
-  /* Reader Mobile */
   .section-content {
     padding: 0 1.5rem;
   }
@@ -1426,18 +1463,17 @@ body {
   .control-btn, .ui-toggle-btn {
     width: 42px;
     height: 42px;
-    padding: 0;
-    line-height: 0;
   }
-  
-  /* Force SVG centering on mobile */
-  .control-btn svg, .ui-toggle-btn svg {
-    margin: 0 auto;
-    display: block;
+
+  .control-btn::after {
+    height: 42px; /* Full height for mobile */
+    top: 0;
+    bottom: auto;
   }
 
   .section-info {
     padding: 0 0.75rem;
+    height: 42px;
   }
 
   .standalone-ui-toggle {
@@ -1464,10 +1500,13 @@ body {
   .books-container {
     max-height: calc(100dvh - 160px);
   }
+
+  .section-image {
+    max-height: calc(100vh - 150px);
+  }
 }
 
 @media (max-width: 480px) {
-  /* Navigation */
   .top-nav {
     padding: 16px 20px;
   }
@@ -1476,7 +1515,6 @@ body {
     font-size: 16px;
   }
 
-  /* Main Content */
   .main-content {
     padding: 0 20px 20px;
     min-height: calc(100dvh - 72px);
@@ -1487,7 +1525,6 @@ body {
     height: calc(100dvh - 68px);
   }
 
-  /* Upload Zone */
   .upload-header h1 {
     font-size: 32px;
   }
@@ -1504,7 +1541,6 @@ body {
     font-size: 15px;
   }
 
-  /* Library */
   .books {
     padding: 0 4px;
     margin: 0 -4px;
@@ -1531,7 +1567,6 @@ body {
     height: 32px;
   }
 
-  /* Reader */
   :root {
     --safe-area-top: 50px;
     --safe-area-bottom: 50px;
@@ -1551,13 +1586,13 @@ body {
     height: 40px;
   }
 
-  /* Ensure consistent border height on small screens */
   .control-btn::after {
-    height: 20px;
+    height: 40px;
   }
 
   .section-info {
     padding: 0 0.5rem;
+    height: 40px;
   }
 
   .standalone-ui-toggle {
@@ -1590,6 +1625,10 @@ body {
   .books-container {
     max-height: calc(100dvh - 140px);
   }
+
+  .section-image {
+    max-height: calc(100vh - 120px);
+  }
 }
 
 /* Touch Device Optimizations */
@@ -1614,7 +1653,6 @@ body {
   }
 }
 
-/* Very Small Screens */
 @media (max-width: 320px) {
   .control-panel {
     right: 0.5rem;
@@ -1638,7 +1676,6 @@ body {
   }
 }
 
-/* High resolution screens */
 @media (min-height: 800px) {
   .books-container {
     max-height: calc(100vh - 200px);

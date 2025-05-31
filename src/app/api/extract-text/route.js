@@ -53,7 +53,7 @@ export async function POST(request) {
       );
     }
 
-    // Extract text based on file type
+    // Extract text and images based on file type
     let result;
     
     try {
@@ -61,17 +61,17 @@ export async function POST(request) {
         // Dynamic import for EPUB extractor
         const { EPUBExtractor } = await import('../../../utils/epubExtractor');
         const epubExtractor = new EPUBExtractor();
-        const extractionPromise = epubExtractor.extractText(file);
+        const extractionPromise = epubExtractor.extractTextAndImages(file);
         const timeoutPromise = new Promise((_, reject) => {
           setTimeout(() => reject(new Error('EPUB_TIMEOUT')), TIMEOUT_DURATION);
         });
         
         result = await Promise.race([extractionPromise, timeoutPromise]);
       } else {
-        // PDF extraction
+        // PDF extraction with images
         const bytes = await file.arrayBuffer();
         const buffer = Buffer.from(bytes);
-        const extractionPromise = extractTextFromPDF(buffer);
+        const extractionPromise = extractTextAndImagesFromPDF(buffer);
         const timeoutPromise = new Promise((_, reject) => {
           setTimeout(() => reject(new Error('PDF_TIMEOUT')), TIMEOUT_DURATION);
         });
@@ -79,7 +79,8 @@ export async function POST(request) {
         result = await Promise.race([extractionPromise, timeoutPromise]);
       }
 
-      if (!result || !result.text || result.text.trim().length < 50) {
+      if (!result || (!result.text && !result.content) || 
+          (result.text && result.text.trim().length < 50 && (!result.content || result.content.length === 0))) {
         return NextResponse.json(
           { error: ERROR_MESSAGES.NO_TEXT },
           { status: 422 }
@@ -87,7 +88,9 @@ export async function POST(request) {
       }
 
       return NextResponse.json({
-        text: result.text,
+        text: result.text || '',
+        content: result.content || [],
+        images: result.images || [],
         metadata: result.metadata,
         fileType: file.type === 'application/epub+zip' ? 'epub' : 'pdf',
         success: true
@@ -126,8 +129,85 @@ export async function POST(request) {
   }
 }
 
-// ... rest of the existing PDF extraction functions remain the same
+// Enhanced PDF extraction with image support
+async function extractTextAndImagesFromPDF(buffer) {
+  let extractedText = '';
+  let extractedImages = [];
+  let content = [];
+  let method = 'unknown';
+  
+  try {
+    // Try pdf-parse-new first
+    try {
+      const result = await extractWithPdfParseAndImages(buffer);
+      if (result && (result.text?.length > 50 || result.content?.length > 0)) {
+        extractedText = result.text || '';
+        extractedImages = result.images || [];
+        content = result.content || [];
+        method = 'pdf-parse-enhanced';
+      }
+    } catch (pdfParseError) {
+      console.warn('Enhanced pdf-parse extraction failed:', pdfParseError.message);
+      
+      // Fallback to text-only extraction
+      const textResult = await extractTextFromPDF(buffer);
+      extractedText = textResult.text;
+      content = [{ type: 'text', content: textResult.text }];
+      method = textResult.metadata.extractionMethod;
+    }
 
+    if (!extractedText && content.length === 0) {
+      throw new Error('No content found in PDF');
+    }
+
+    return {
+      text: extractedText,
+      content: content,
+      images: extractedImages,
+      metadata: {
+        extractionMethod: method,
+        textLength: extractedText.length,
+        imageCount: extractedImages.length,
+        contentBlocks: content.length,
+        wordCount: extractedText.split(/\s+/).filter(word => word.length > 0).length
+      }
+    };
+
+  } catch (error) {
+    console.error('Error in extractTextAndImagesFromPDF:', error);
+    throw new Error(`PDF processing failed: ${error.message}`);
+  }
+}
+
+async function extractWithPdfParseAndImages(buffer) {
+  try {
+    const pdfParse = (await import('pdf-parse-new')).default;
+    
+    const data = await pdfParse(buffer, {
+      max: 0, // Parse all pages
+      version: 'v2.0.550',
+    });
+
+    if (!data || !data.text) {
+      throw new Error('No content found in PDF');
+    }
+
+    // For now, return text content
+    // Image extraction would require additional PDF parsing like pdf2pic
+    // This is a basic implementation that focuses on text
+    const content = [{ type: 'text', content: data.text }];
+
+    return {
+      text: data.text,
+      content: content,
+      images: [] // Images would be extracted with additional libraries
+    };
+  } catch (error) {
+    throw new Error(`Enhanced pdf-parse extraction failed: ${error.message}`);
+  }
+}
+
+// Keep existing PDF extraction functions for fallback
 async function extractTextFromPDF(buffer) {
   let extractedText = '';
   let method = 'unknown';
@@ -193,6 +273,7 @@ async function extractTextFromPDF(buffer) {
   }
 }
 
+// ... (keep all existing helper functions for PDF text extraction)
 async function extractWithPdfParse(buffer) {
   try {
     // Dynamic import to handle the module properly

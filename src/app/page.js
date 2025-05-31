@@ -9,19 +9,25 @@ import "@/styles/styles.css";
 
 function App() {
   const [extractedText, setExtractedText] = useState("");
+  const [extractedContent, setExtractedContent] = useState([]);
+  const [extractedImages, setExtractedImages] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [fileName, setFileName] = useState("");
   const [currentFileId, setCurrentFileId] = useState(null);
   const fileLibrary = new FileLibrary();
 
-  const handleTextExtracted = (text, name, fileId = null) => {
+  const handleTextExtracted = (text, name, fileId = null, content = [], images = []) => {
     setExtractedText(text);
+    setExtractedContent(content);
+    setExtractedImages(images);
     setFileName(name);
     setCurrentFileId(fileId);
   };
 
   const handleReset = () => {
     setExtractedText("");
+    setExtractedContent([]);
+    setExtractedImages([]);
     setFileName("");
     setCurrentFileId(null);
   };
@@ -34,7 +40,7 @@ function App() {
 
   return (
     <>
-      {!extractedText ? (
+      {!extractedText && extractedContent.length === 0 ? (
         <CleanHomepage
           onTextExtracted={handleTextExtracted}
           isLoading={isLoading}
@@ -43,6 +49,8 @@ function App() {
       ) : (
         <TikTokReader
           text={extractedText}
+          content={extractedContent}
+          images={extractedImages}
           fileName={fileName}
           onReset={handleReset}
           onProgressUpdate={handleProgressUpdate}
