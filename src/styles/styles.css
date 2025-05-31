@@ -1681,3 +1681,138 @@ body {
     max-height: calc(100vh - 200px);
   }
 }
+
+
+/* FIXED Control Button and Icon Centering - Mobile Optimizations */
+.control-btn {
+  width: 46px;
+  height: 46px;
+  border: none;
+  background: transparent;
+  color: #6b7280;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  position: relative;
+  padding: 0;
+  margin: 0;
+  line-height: 1;
+}
+
+/* FIXED: Ensure SVG icons are always centered */
+.control-btn svg {
+  display: block;
+  width: 20px;
+  height: 20px;
+  margin: auto;
+  flex-shrink: 0;
+}
+
+/* Fix section info centering */
+.section-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 1rem;
+  border-left: 1px solid var(--border-light);
+  border-right: 1px solid var(--border-light);
+  min-width: 0;
+  flex-shrink: 1;
+  height: 46px;
+}
+
+/* Fix for mobile responsive styles */
+@media (max-width: 768px) {
+  .control-panel {
+    top: 1rem;
+    right: 1rem;
+    height: 42px;
+    max-width: calc(100vw - 2rem);
+    align-items: center; /* FIXED: Ensure alignment */
+  }
+
+  .control-btn, .ui-toggle-btn {
+    width: 42px;
+    height: 42px;
+    display: inline-flex; /* FIXED: Use inline-flex for better alignment */
+    align-items: center;
+    justify-content: center;
+  }
+
+  .control-btn::after {
+    top: 50%;
+    height: 24px;
+    transform: translateY(-50%); /* FIXED: Center border vertically */
+    bottom: auto;
+  }
+
+  .section-info {
+    padding: 0 0.75rem;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* FIXED: Ensure SVG icons are properly sized for mobile */
+  .control-btn svg, .ui-toggle-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .control-panel {
+    height: 40px;
+    border-radius: 10px;
+  }
+
+  .control-btn, .ui-toggle-btn {
+    width: 40px;
+    height: 40px;
+  }
+
+  .control-btn::after {
+    height: 22px;
+  }
+
+  .section-info {
+    padding: 0 0.5rem;
+    height: 40px;
+  }
+  
+  /* FIXED: Smaller icons on very small screens */
+  .control-btn svg, .ui-toggle-btn svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  /* FIXED: Make sure section counter text is aligned properly */
+  .section-counter-container {
+    font-size: 0.75rem;
+    padding: 0.125rem 0.25rem;
+    display: flex;
+    align-items: center;
+    height: 24px;
+  }
+}
+
+/* Touch Device Optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .control-btn, .ui-toggle-btn {
+    min-width: 44px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  
+  /* FIXED: Ensure touch targets are big enough but icons remain centered */
+  .control-btn svg, .ui-toggle-btn svg {
+    width: 18px;
+    height: 18px;
+  }
+}
