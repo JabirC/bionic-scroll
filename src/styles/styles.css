@@ -738,9 +738,9 @@ body {
   transition: all 0.2s ease;
   flex-shrink: 0;
   position: relative;
-  /* padding: 0;
-  margin: 0; */
-  line-height: 1;
+  padding: 0;
+  margin: 0;
+  /* line-height: 1; */
 }
 
 /* FIXED: Full height borders between buttons */
@@ -1465,11 +1465,11 @@ body {
     height: 42px;
   }
 
-  /* .control-btn::after {
+  .control-btn::after {
     height: 42px;
     top: 0;
     bottom: auto;
-  } */
+  }
 
   .section-info {
     padding: 0 0.75rem;
