@@ -31,6 +31,9 @@ const TikTokReader = ({ text, fileName, onReset, fileId }) => {
   // Three font sizes: small, medium, large
   const FONT_SIZES = [18, 22, 26];
   const FONT_SIZE_LABELS = ['Small', 'Medium', 'Large'];
+  
+  // Add a ref to track content for repositioning - FONT SIZE JUMP FIX
+  const findMatchingSectionRef = useRef(null);
 
   // Handle hydration and theme
   useEffect(() => {
@@ -91,13 +94,15 @@ const TikTokReader = ({ text, fileName, onReset, fileId }) => {
     }
   }, [text, textProcessor, fileId, fileLibrary, fontSizeIndex]);
 
-  // Recalculate sections on window resize or font size change
+  // Recalculate sections on window resize or font size change - FONT SIZE JUMP FIX
   useEffect(() => {
     const handleResize = () => {
       if (text && sections.length > 0) {
         // Store current position before resize
         const currentSection = sections[currentSectionIndex];
-        const currentCharIndex = currentSection ? currentSection.startCharIndex : 0;
+        const currentContent = currentSection ? currentSection.content : '';
+        const contentToFind = findMatchingSectionRef.current || 
+                              currentContent.trim().split(/\s+/).slice(0, 10).join(' ');
         
         // Recalculate sections
         const rawSections = textProcessor.splitTextIntoScreenSections(text);
@@ -106,16 +111,35 @@ const TikTokReader = ({ text, fileName, onReset, fileId }) => {
         );
         setSections(processedSections);
         
-        // Find new section index for the same character position
-        const newSectionIndex = textProcessor.findSectionByCharacterIndex(
-          rawSections, 
-          currentCharIndex
-        );
-        setCurrentSectionIndex(newSectionIndex);
+        // Find section containing the same content
+        let bestMatchIndex = 0;
+        let bestMatchScore = -1;
+        
+        for (let i = 0; i < rawSections.length; i++) {
+          if (rawSections[i].content.includes(contentToFind)) {
+            const score = rawSections[i].content.indexOf(contentToFind);
+            if (score === 0) {
+              bestMatchIndex = i;
+              break; // Perfect match at beginning
+            } else if (score > bestMatchScore) {
+              bestMatchIndex = i;
+              bestMatchScore = score;
+            }
+          }
+        }
+        
+        setCurrentSectionIndex(bestMatchIndex);
+        findMatchingSectionRef.current = null;
       }
     };
 
     window.addEventListener('resize', handleResize);
+    
+    // Call resize handler when font size changes - FONT SIZE JUMP FIX
+    if (findMatchingSectionRef.current) {
+      handleResize();
+    }
+    
     return () => window.removeEventListener('resize', handleResize);
   }, [text, textProcessor, isBionicMode, sections, currentSectionIndex, fontSizeIndex]);
 
@@ -249,12 +273,31 @@ const TikTokReader = ({ text, fileName, onReset, fileId }) => {
     }
   };
 
-  // Font size controls
+  // Font size controls - FONT SIZE JUMP FIX
   const increaseFontSize = () => {
+    if (fontSizeIndex >= FONT_SIZES.length - 1) return;
+    
+    // Store reference content for repositioning
+    if (sections[currentSectionIndex]) {
+      const currentContent = sections[currentSectionIndex].content;
+      const firstWords = currentContent.trim().split(/\s+/).slice(0, 10).join(' ');
+      findMatchingSectionRef.current = firstWords;
+    }
+    
     setFontSizeIndex(prev => Math.min(prev + 1, FONT_SIZES.length - 1));
   };
 
+  // Font size controls - FONT SIZE JUMP FIX
   const decreaseFontSize = () => {
+    if (fontSizeIndex <= 0) return;
+    
+    // Store reference content for repositioning
+    if (sections[currentSectionIndex]) {
+      const currentContent = sections[currentSectionIndex].content;
+      const firstWords = currentContent.trim().split(/\s+/).slice(0, 10).join(' ');
+      findMatchingSectionRef.current = firstWords;
+    }
+    
     setFontSizeIndex(prev => Math.max(prev - 1, 0));
   };
 

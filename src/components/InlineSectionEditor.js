@@ -56,7 +56,7 @@ const InlineSectionEditor = ({
 
   // Calculate width for current section input based on number of digits
   const getCurrentSectionWidth = () => {
-    const digits = currentSection.toString().length;
+    const digits = inputValue ? inputValue.toString().length : 1;
     return `${Math.max(1.5, digits * 0.7)}rem`;
   };
 
@@ -79,7 +79,7 @@ const InlineSectionEditor = ({
             onBlur={handleBlur}
             className="section-editor-input"
             style={{ width: getCurrentSectionWidth() }}
-            placeholder={currentSection.toString()}
+            placeholder="" // Empty placeholder so no default value appears
           />
         </form>
         <span className="section-separator">/ </span>
