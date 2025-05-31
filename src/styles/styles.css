@@ -1465,11 +1465,11 @@ body {
     height: 42px;
   }
 
-  .control-btn::after {
-    height: 42px; /* Full height for mobile */
+  /* .control-btn::after {
+    height: 42px;
     top: 0;
     bottom: auto;
-  }
+  } */
 
   .section-info {
     padding: 0 0.75rem;
